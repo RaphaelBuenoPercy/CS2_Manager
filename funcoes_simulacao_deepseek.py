@@ -1,0 +1,223 @@
+import random
+from dataclasses import dataclass
+from typing import List, Tuple, Dict, Literal
+from estrategias import estrategias_por_mapa, estrategia_resultado
+from funcoes_prejogo_deepseek import times, vetar_e_escolher_mapas
+
+# ==================== CLASSES DE DADOS ====================
+@dataclass
+class ResultadoMapa:
+    mapa: str
+    time_ct: str
+    time_tr: str
+    placar_time1: int
+    placar_time2: int
+    rounds_extra: int = 0
+
+@dataclass
+class ResultadoPartida:
+    partida_id: int
+    mapas: List[ResultadoMapa]
+    vencedor: str = ""
+    modo_jogo: Literal['manual', 'semi-auto', 'auto'] = "manual"
+
+# ==================== CONTROLE DE PARTIDAS ====================
+class ContadorPartidas:
+    _id = 1
+    
+    @classmethod
+    def proxima_partida(cls):
+        current = cls._id
+        cls._id += 1
+        return current
+
+# ==================== FUNÇÕES AUXILIARES ====================
+ModoJogo = Literal['manual', 'semi-auto', 'auto']
+
+def validar_time(nome: str) -> str:
+    if nome not in times:
+        raise ValueError(f"Time '{nome}' não registrado!")
+    return nome
+
+def escolher_estrategia(time: str, estrategias: List[str], modo: ModoJogo) -> int:
+    """Seleção de estratégia baseada no modo de jogo"""
+    if modo == 'auto':
+        return random.randint(0, len(estrategias)-1)
+    
+    if modo == 'semi-auto' and "Jogador" not in time:
+        return random.randint(0, len(estrategias)-1)
+    
+    print(f"\n{time}, estratégias disponíveis:")
+    for i, estrategia in enumerate(estrategias, 1):
+        print(f"{i}. {estrategia}")
+    
+    while True:
+        try:
+            escolha = int(input("Escolha (número): ")) - 1
+            if 0 <= escolha < len(estrategias):
+                return escolha
+            print("Número inválido!")
+        except ValueError:
+            print("Digite apenas números!")
+
+# ==================== FUNÇÕES PRINCIPAIS ====================
+def jogar_half(
+    time_ct: str, 
+    time_tr: str, 
+    mapa: str,
+    modo: ModoJogo,
+    max_rounds: int = 12,
+    meta: int = 13,
+    pontos_iniciais_ct: int = 0,
+    pontos_iniciais_tr: int = 0
+) -> Tuple[int, int]:
+    """Executa um half de jogo e retorna os pontos conquistados pelos lados CT e TR."""
+    try:
+        if mapa not in estrategias_por_mapa:
+            raise ValueError(f"Mapa '{mapa}' não encontrado nas estratégias")
+            
+        if modo not in ModoJogo.__args__:
+            raise ValueError(f"Modo de jogo inválido: {modo}")
+
+        estrategias_ct = estrategias_por_mapa[mapa]["ct"]
+        estrategias_tr = estrategias_por_mapa[mapa]["tr"]
+        
+        pontos_ct = 0
+        pontos_tr = 0
+        
+        for _ in range(max_rounds):
+            idx_ct = escolher_estrategia(time_ct, estrategias_ct, modo)
+            idx_tr = escolher_estrategia(time_tr, estrategias_tr, modo)
+            
+            resultado = estrategia_resultado(estrategias_ct[idx_ct], estrategias_tr[idx_tr])
+            
+            if resultado == "ct":
+                pontos_ct += 1
+                print(f"{time_ct} (CT) venceu! CT {pontos_iniciais_ct + pontos_ct}-{pontos_iniciais_tr + pontos_tr} TR")
+            else:
+                pontos_tr += 1
+                print(f"{time_tr} (TR) venceu! CT {pontos_iniciais_ct + pontos_ct}-{pontos_iniciais_tr + pontos_tr} TR")
+                
+            # Verifica se atingiu a meta considerando os pontos iniciais
+            if (pontos_iniciais_ct + pontos_ct) >= meta or (pontos_iniciais_tr + pontos_tr) >= meta:
+                break
+                
+        return pontos_ct, pontos_tr
+    
+    except KeyError as e:
+        print(f"Erro de configuração: Estratégia não encontrada para o mapa {mapa}")
+        raise
+    except Exception as e:
+        print(f"Erro durante o half: {type(e).__name__} - {str(e)}")
+        raise
+
+def jogar_mapa(time1: str, time2: str, mapa: str, modo: ModoJogo) -> ResultadoMapa:
+    """Executa uma partida completa em um mapa"""
+    try:
+        resultado = ResultadoMapa(mapa=mapa, time_ct=time1, time_tr=time2, placar_time1=0, placar_time2=0)
+        
+        # Primeiro half (CT: time1, TR: time2)
+        resultado.placar_time1, resultado.placar_time2 = jogar_half(
+            time1, time2, mapa, modo, 12, meta=13
+        )
+
+        # Segundo half (CT: time2, TR: time1) com pontos iniciais
+        if resultado.placar_time1 < 13 and resultado.placar_time2 < 13:
+            placar_time2_half, placar_time1_half = jogar_half(
+                time2,  # CT
+                time1,  # TR
+                mapa,
+                modo,
+                max_rounds=12,
+                meta=13,
+                pontos_iniciais_ct=resultado.placar_time2,  # Pontos atuais do time2 (CT)
+                pontos_iniciais_tr=resultado.placar_time1   # Pontos atuais do time1 (TR)
+            )
+            resultado.placar_time1 += placar_time1_half
+            resultado.placar_time2 += placar_time2_half
+
+        return resultado
+
+    except Exception as e:
+        print(f"Erro durante a execução do mapa {mapa}: {str(e)}")
+        resultado.erro = True
+        return resultado
+
+def jogar_partida(
+    modo: ModoJogo = 'manual',
+    time1: str = None,
+    time2: str = None
+) -> ResultadoPartida:
+    """Gerencia uma partida completa entre dois times"""
+    try:
+        # Validação inicial
+        try:
+            time1 = validar_time(time1) if time1 else random.choice(times)
+            time2 = validar_time(time2) if time2 else random.choice([t for t in times if t != time1])
+        except (ValueError, IndexError) as e:
+            raise RuntimeError(f"Seleção de times inválida: {str(e)}") from e
+
+        resultado = ResultadoPartida(
+            partida_id=ContadorPartidas.proxima_partida(),
+            mapas=[],
+            modo_jogo=modo
+        )
+
+        print(f"\n=== PARTIDA {resultado.partida_id} ===")
+        print(f"Times: {time1} vs {time2}")
+        print(f"Modo: {modo.replace('-', ' ').title()}\n")
+
+        # Seleção de mapas
+        try:
+            mapas = vetar_e_escolher_mapas(time1, time2)
+            if not mapas:
+                raise RuntimeError("Nenhum mapa válido selecionado")
+        except Exception as e:
+            print(f"Erro na seleção de mapas: {str(e)}")
+            return None
+
+        # Execução dos mapas
+        for mapa in mapas:
+            try:
+                print(f"\n=== MAPA: {mapa.upper()} ===")
+                resultado_mapa = jogar_mapa(time1, time2, mapa, modo)
+                
+                if hasattr(resultado_mapa, 'erro'):
+                    print(f"Mapa {mapa} ignorado devido a erros")
+                    continue
+                
+                resultado.mapas.append(resultado_mapa)
+                
+                vitorias_time1 = sum(1 for m in resultado.mapas if m.placar_time1 > m.placar_time2)
+                vitorias_time2 = sum(1 for m in resultado.mapas if m.placar_time2 > m.placar_time1)
+                
+                print(f"\nPlacar atual: {time1} {vitorias_time1}-{vitorias_time2} {time2}")
+                
+                if vitorias_time1 >= 2 or vitorias_time2 >= 2:
+                    break
+
+            except Exception as e:
+                print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
+                return resultado  # Retorna resultados parciais
+
+        resultado.vencedor = time1 if vitorias_time1 > vitorias_time2 else time2
+        print(f"\n=== RESULTADO FINAL ===")
+        print(f"VENCEDOR: {resultado.vencedor}")
+        
+        return resultado
+
+    except Exception as e:
+        print(f"Erro fatal na partida: {str(e)}")
+        return None
+
+# ==================== EXEMPLO DE USO ====================
+    # Cadastre times primeiro usando funcoes_prejogo.adicionar_time()
+    
+    # Modo manual
+    # jogar_partida(modo='manual', time1="FURIA", time2="Liquid")
+    
+    # Modo semi-automático (usuário controla primeiro time)
+    # jogar_partida(modo='semi-auto', time1="Jogador", time2="Bot")
+    
+    # Modo automático
+    # jogar_partida(modo='auto', time1="FURIA", time2="Liquid")

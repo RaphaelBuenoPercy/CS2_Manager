@@ -169,3 +169,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Ignorar pastas __pycache__ e arquivos .pyc
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

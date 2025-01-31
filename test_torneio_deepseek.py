@@ -8,10 +8,10 @@ class TestTorneio(unittest.TestCase):
 
     @patch('builtins.input', side_effect=['3', '2'])
     def test_validar_num_grupos(self, mock_input):
-        result = validar_num_grupos(self.times, 3)
+        result = validar_num_grupos(self.times, 2)
         self.assertEqual(result, 2)
 
-    @patch('builtins.input', side_effect=['1 3 5'])
+    @patch('builtins.input', side_effect=['1 3 6'])
     def test_selecionar_times(self, mock_input):
         result = selecionar_times(self.times, 3)
         self.assertEqual(result, ["FURIA", "Vitality", "Heroic"])

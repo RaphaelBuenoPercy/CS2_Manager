@@ -89,8 +89,8 @@ def jogar_half(
             idx_ct = escolher_estrategia(time_ct, estrategias_ct, modo)
             idx_tr = escolher_estrategia(time_tr, estrategias_tr, modo)
             
-            resultado = estrategia_resultado(estrategias_ct[idx_ct], estrategias_tr[idx_tr])
-            
+            resultado = estrategia_resultado(idx_ct, idx_tr)
+
             if resultado == "ct":
                 pontos_ct += 1
                 print(f"{time_ct} (CT) venceu! CT {pontos_iniciais_ct + pontos_ct}-{pontos_iniciais_tr + pontos_tr} TR")

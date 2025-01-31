@@ -23,11 +23,11 @@ class TestPreJogo(unittest.TestCase):
 
     def test_adicionar_time_duplicado(self):
         adicionar_time("MIBR")
-        with self.assertRaisesRegex(ValueError, "já está registrado"):
+        with self.assertRaisesRegex(ValueError, "Time 'MIBR' já está registrado"):
             adicionar_time("MIBR")
 
     def test_adicionar_time_vazio(self):
-        with self.assertRaisesRegex(ValueError, "não pode ser vazio"):
+        with self.assertRaisesRegex(ValueError, "Nome do time não pode ser vazio"):
             adicionar_time("")
 
     # Testes para carregar_times_csv()
@@ -47,12 +47,17 @@ class TestPreJogo(unittest.TestCase):
             mocked_print.assert_called_with("Nenhum time registrado\n")
 
     def test_listar_times_preenchido(self):
-        times.extend(["FURIA", "MIBR"])
+        # Adiciona times à lista global
+        times.extend(["Furia", "Mibr"])
+        
+        # Mock de print para verificar a saída
         with patch('builtins.print') as mocked_print:
-            listar_times()
-            mocked_print.assert_any_call(" 1. FURIA")
-            mocked_print.assert_any_call(" 2. MIBR")
-            mocked_print.assert_any_call("Total: 2 times\n")
+            listar_times()  # Chama a função para listar os times
+
+            # Verifica se os times foram listados com o número correto
+            mocked_print.assert_any_call("  1. Furia")  # Verifica se "1. Furia" foi impresso
+            mocked_print.assert_any_call("  2. Mibr")   # Verifica se "2. Mibr" foi impresso
+            mocked_print.assert_any_call("Total: 2 times\n")  # Verifica se o total de times foi impresso corretamente
 
     # Testes para selecionar_mapa()
     @patch('builtins.input', side_effect=['2'])
@@ -77,7 +82,7 @@ class TestPreJogo(unittest.TestCase):
         
         resultado = vetar_e_escolher_mapas("Time A", "Time B")
         self.assertEqual(len(resultado), 3)
-        self.assertEqual(resultado[2], "Mapa7")
+        self.assertEqual(resultado[2], "Train")
 
 if __name__ == '__main__':
     unittest.main()

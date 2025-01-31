@@ -18,19 +18,15 @@ def adicionar_time(nome: str) -> None:
         ValueError: Se nome for vazio ou duplicado
     """
     global times
-    try:
-        nome = nome.strip()
-        if not nome:
-            raise ValueError("Nome do time não pode ser vazio")
+    nome = nome.strip()
+    if not nome:
+        raise ValueError("Nome do time não pode ser vazio")
             
-        if nome in times:
-            raise ValueError(f"Time '{nome}' já está registrado")
+    if nome in times:
+        raise ValueError(f"Time '{nome}' já está registrado")
             
-        times.append(nome)
-        print(f"✓ Time '{nome}' adicionado com sucesso\n")
-        
-    except ValueError as e:
-        print(f"Erro: {str(e)}\n")
+    times.append(nome)
+    print(f"✓ Time '{nome}' adicionado com sucesso\n")
 
 def carregar_times_csv(arquivo: str = "times.csv") -> None:
     """Carrega times de um arquivo CSV validando o formato.

@@ -136,12 +136,69 @@ def jogar_mapa(time1: str, time2: str, mapa: str, modo: ModoJogo) -> ResultadoMa
             resultado.placar_time1 += placar_time1_half
             resultado.placar_time2 += placar_time2_half
 
+        # Verificar empate e iniciar overtime
+        if resultado.placar_time1 == resultado.placar_time2:
+            overtime_count = 1
+            resultado = jogar_ot(time1, time2, mapa, modo, resultado, overtime_count)
+
         return resultado
 
     except Exception as e:
         print(f"Erro durante a execução do mapa {mapa}: {str(e)}")
         resultado.erro = True
         return resultado
+
+def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overtime_count) -> ResultadoMapa:
+        while True:
+            print(f"\n=== Overtime {overtime_count} (Placar: {resultado.placar_time1}-{resultado.placar_time2}) ===")
+            
+            # Jogar até 4 vitórias no overtime, alternando lados a cada 3 rounds
+            placar_meta = 13 + (overtime_count * 3)  # Meta para vencer o overtime
+        
+            # Primeiro lado do overtime (Time 1 CT)  
+            # Jogar rounds alternados até atingir 4 vitórias
+            while True:
+                # Primeiro Half Overtime
+                placar_time1_1ot, placar_time2_1ot = jogar_half(
+                    time1, #CT
+                    time2, #TR 
+                    mapa, 
+                    modo, 
+                    max_rounds=3, 
+                    meta=placar_meta,
+                    pontos_iniciais_ct=resultado.placar_time1,
+                    pontos_iniciais_tr=resultado.placar_time2
+                 )
+                
+                resultado.placar_time1 += placar_time1_1ot
+                resultado.placar_time2 += placar_time2_1ot
+                
+                # TR joga até 3 rounds OU até atingir 4 vitórias
+                placar_time2_1ot, placar_time1_1ot = jogar_half(
+                    time2, #CT
+                    time1, #TR 
+                    mapa, 
+                    modo, 
+                    max_rounds=3, 
+                    meta=placar_meta,
+                    pontos_iniciais_ct=resultado.placar_time2,
+                    pontos_iniciais_tr=resultado.placar_time1
+                )
+                
+                resultado.placar_time1 += placar_time1_1ot
+                resultado.placar_time2 += placar_time2_1ot
+                break
+
+            # Verificar se o overtime terminou
+            if resultado.placar_time1 >= placar_meta:
+                print(f"{time1} venceu o overtime {resultado.placar_time1}-{resultado.placar_time2}!")
+                return resultado
+            elif resultado.placar_time2 >= placar_meta:
+                print(f"{time2} venceu o overtime {resultado.placar_time2}-{resultado.placar_time2}!")
+                return resultado
+            else:
+                overtime_count += 1
+                return jogar_ot(time1, time2, mapa, modo, resultado, overtime_count)
 
 def jogar_partida(
     modo: ModoJogo = 'manual',

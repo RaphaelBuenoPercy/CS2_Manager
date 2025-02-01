@@ -108,8 +108,16 @@ def menu_torneio():
 
 # ==================== MENU PRINCIPAL ====================
 def main():
+    # Perguntar ao iniciar se deseja carregar o times.csv
+    mostrar_titulo("Bem-vindo ao simulador de CS2!")
+    if confirmar_acao("Deseja carregar o arquivo times.csv ao iniciar?"):
+        try:
+            carregar_times_csv()  # Carrega o arquivo padrão
+        except FileNotFoundError:
+            print(f"Arquivo 'times.csv' não encontrado no diretório atual!\n")
+
     while True:
-        mostrar_titulo("simulador de cs2")
+        mostrar_titulo("Simulador de CS2\n")
         print("1. Gerenciar Times")
         print("2. Jogar Partida")
         print("3. Torneios")

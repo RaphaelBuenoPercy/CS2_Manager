@@ -99,7 +99,7 @@ def menu_torneio():
         escolha = obter_opcao_numerica(1, 3)
         
         if escolha == 1:
-            criar_torneio()
+            criar_torneio(times)
         elif escolha == 2:
             # Implementar listagem de torneios
             print("Funcionalidade em desenvolvimento!")

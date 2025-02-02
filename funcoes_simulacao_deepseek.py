@@ -19,6 +19,7 @@ class ResultadoPartida:
     partida_id: int
     mapas: List[ResultadoMapa]
     vencedor: str = ""
+    perdedor: str = ""
     modo_jogo: Literal['manual', 'semi-auto', 'auto'] = "manual"
 
 # ==================== CONTROLE DE PARTIDAS ====================
@@ -257,7 +258,7 @@ def jogar_partida(
                 print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
                 return resultado  # Retorna resultados parciais
 
-        resultado.vencedor = time1 if vitorias_time1 > vitorias_time2 else time2
+        resultado.vencedor, resultado.perdedor = (time1, time2) if vitorias_time1 > vitorias_time2 else (time2, time1)
         print(f"\n=== RESULTADO FINAL ===")
         print(f"VENCEDOR: {resultado.vencedor}")
         

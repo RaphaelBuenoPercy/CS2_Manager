@@ -21,6 +21,17 @@ class ResultadoPartida:
     vencedor: str = ""
     perdedor: str = ""
     modo_jogo: Literal['manual', 'semi-auto', 'auto'] = "manual"
+    fase: str = ""
+    def to_dict(self) -> dict:
+        """Converte o objeto ResultadoPartida em um dicionário."""
+        return {
+            "partida_id": self.partida_id,
+            "mapas": [mapa.to_dict() if hasattr(mapa, 'to_dict') else str(mapa) for mapa in self.mapas],
+            "vencedor": self.vencedor,
+            "perdedor": self.perdedor,
+            "modo_jogo": self.modo_jogo,
+            "fase": self.fase
+            }
 
 # ==================== CONTROLE DE PARTIDAS ====================
 class ContadorPartidas:
@@ -204,8 +215,8 @@ def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overt
 def jogar_partida(
     modo: ModoJogo = 'manual',
     time1: str = None,
-    time2: str = None
-) -> ResultadoPartida:
+    time2: str = None,
+    fase_torneio: str = None ) -> ResultadoPartida:
     """Gerencia uma partida completa entre dois times"""
     try:
         # Validação inicial
@@ -218,7 +229,8 @@ def jogar_partida(
         resultado = ResultadoPartida(
             partida_id=ContadorPartidas.proxima_partida(),
             mapas=[],
-            modo_jogo=modo
+            modo_jogo=modo,
+            fase = fase_torneio
         )
 
         print(f"\n=== PARTIDA {resultado.partida_id} ===")

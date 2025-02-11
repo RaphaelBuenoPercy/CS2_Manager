@@ -1,6 +1,7 @@
 import random
 import csv
 from typing import List, Dict
+import re
 from funcoes_simulacao_deepseek import jogar_partida, ResultadoPartida
 
 def obter_opcao_numerica(min_val: int, max_val: int) -> int:
@@ -135,9 +136,9 @@ def realizar_jogo_dbelim(time1: str, time2: str, rodada: int, chave: str, result
     escolha = obter_opcao_numerica(1, 2)
 
     if escolha == 1:
-        resultado = jogar_partida(modo='auto', time1=time1, time2=time2)
+        resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio=rodada)
     elif escolha == 2:
-        resultado = jogar_partida(modo='manual', time1=time1, time2=time2)
+        resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio=rodada)
     else:
         raise ValueError("Escolha inválida!")
 
@@ -189,13 +190,13 @@ def fase_grupos(times: List[str], num_grupos: int, num_classificados: int, ida_e
                     escolha = obter_opcao_numerica(1, 2)
         
                     if escolha == 1:
-                        resultado = jogar_partida(modo='auto', time1=time1, time2=time2)
+                        resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio="Grupos")
                         placares[resultado.vencedor] += 3
                         resultados.append(resultado)
 
                     elif escolha == 2:
                         if time1 in times and time2 in times:
-                            resultado = jogar_partida(modo='manual', time1=time1, time2=time2)
+                            resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio="Grupos")
                             placares[resultado.vencedor] += 3
                             resultados.append(resultado)
                         else:
@@ -292,6 +293,7 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
         print(f"\n{fase_atual}:")
         
         novos_times = []
+        random.shuffle(times)
         for i in range(0, len(times), 2):
             time1, time2 = times[i], times[i+1]
             print(f"\nJogo entre: {time1} e {time2}!\n")
@@ -300,8 +302,18 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
             print("2. Partida Personalizada")
             escolha = obter_opcao_numerica(1, 2)
 
-            resultado = jogar_partida(escolha, time1, time2)
-            resultado["fase"] = fase_atual
+            if escolha == 1:
+                resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio=fase_atual)
+
+            elif escolha == 2:
+                if len(times) >= 2:
+                    if time1 in times and time2 in times:
+                        resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio=fase_atual)
+                    else:
+                        print("Times inválidos!")
+                else:
+                    print("Necessário pelo menos 2 times registrados!")
+
             resultados.append(resultado)
             novos_times.append(resultado.vencedor)
             print(f"{time1} vs {time2} → {resultado.vencedor}")
@@ -311,21 +323,54 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
     return times, resultados
 
 def salvar_resultados_csv(nome_torneio: str, resultados: List[Dict]) -> None:
-    """Salva os resultados do torneio em arquivo CSV.
-    
-    Args:
-        nome_torneio: Nome do arquivo sem extensão
-        resultados: Lista de dicionários com resultados
-    """
+    """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa."""
+    resultados_dict = [resultado.to_dict() for resultado in resultados]
+
     try:
+        linhas_csv = []
+
+        for resultado in resultados_dict:
+            partida_id = resultado.get("partida_id")
+            fase = resultado.get("fase")
+            mapas = resultado.get("mapas", [])
+
+            for mapa_str in mapas:
+                # Usando regex para extrair os dados do mapa
+                pattern = r"ResultadoMapa\(mapa='([^']+)', time_ct='([^']+)', time_tr='([^']+)', placar_time1=(\d+), placar_time2=(\d+), rounds_extra=(\d+)"
+                match = re.match(pattern, mapa_str)
+
+                if match:
+                    nome_mapa = match.group(1)
+                    time_ct = match.group(2)
+                    time_tr = match.group(3)
+                    placar_time1 = int(match.group(4))
+                    placar_time2 = int(match.group(5))
+
+                    # Cria uma nova linha para o CSV
+                    linha = {
+                        "partida_id": partida_id,
+                        "time1": time_ct,
+                        "time2": time_tr,
+                        "placar_time1": placar_time1,
+                        "placar_time2": placar_time2,
+                        "mapas": nome_mapa,
+                        "fase": fase
+                    }
+
+                    linhas_csv.append(linha)
+                else:
+                    print(f"Formato inválido para o mapa: {mapa_str}")
+
+        # Escreve os dados no arquivo CSV
         with open(f"{nome_torneio}_resultados.csv", "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=[
-                "time1", "time2", "placar_time1", "placar_time2", 
-                "vencedor", "mapas", "fase"
+                "partida_id", "time1", "time2", "placar_time1", "placar_time2", "mapas", "fase"
             ])
             writer.writeheader()
-            writer.writerows(resultados)
+            writer.writerows(linhas_csv)
+
         print(f"\nResultados salvos em {nome_torneio}_resultados.csv")
+
     except Exception as e:
         print(f"Erro ao salvar resultados: {str(e)}")
 

@@ -1,7 +1,6 @@
 import random
-import csv
 from funcoes_torneio_deepseek import criar_torneio
-from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, vetar_e_escolher_mapas
+from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time
 from funcoes_simulacao_deepseek import jogar_partida
 
 # ==================== FUNÇÕES AUXILIARES ====================
@@ -121,11 +120,10 @@ def main():
         print("1. Gerenciar Times")
         print("2. Jogar Partida")
         print("3. Torneios")
-        print("4. Carregar Dados")
-        print("5. Salvar Progresso")
-        print("6. Sair")
+        print("4. Carregar Times")
+        print("5. Sair")
 
-        escolha = obter_opcao_numerica(1, 6)
+        escolha = obter_opcao_numerica(1, 5)
 
         if escolha == 1:
             menu_gerenciar_times()
@@ -137,9 +135,6 @@ def main():
             arquivo = input("Caminho do arquivo para carregar: ").strip()
             carregar_times_csv(arquivo)
         elif escolha == 5:
-            # Implementar salvamento
-            print("Funcionalidade em desenvolvimento!")
-        elif escolha == 6:
             if confirmar_acao("Tem certeza que deseja sair?"):
                 print("Saindo...")
                 break

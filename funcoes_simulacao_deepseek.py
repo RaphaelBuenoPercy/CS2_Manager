@@ -273,6 +273,11 @@ def jogar_partida(
         resultado.vencedor, resultado.perdedor = (time1, time2) if vitorias_time1 > vitorias_time2 else (time2, time1)
         print(f"\n=== RESULTADO FINAL ===")
         print(f"VENCEDOR: {resultado.vencedor}")
+
+        # Mostra os placares dos mapas
+        print("\nPlacares dos Mapas:")
+        for mapa_result in resultado.mapas:
+            print(f"- {mapa_result.mapa}: {time1} {mapa_result.placar_time1} x {mapa_result.placar_time2} {time2}")
         
         return resultado
 

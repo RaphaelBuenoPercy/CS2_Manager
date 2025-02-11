@@ -1,7 +1,18 @@
 import random
 import csv
 from typing import List, Dict
-from funcoes_simulacao_deepseek import jogar_partida
+from funcoes_simulacao_deepseek import jogar_partida, ResultadoPartida
+
+def obter_opcao_numerica(min_val: int, max_val: int) -> int:
+    """Valida entradas numéricas do menu"""
+    while True:
+        try:
+            escolha = int(input("\nEscolha uma opção: ").strip())
+            if min_val <= escolha <= max_val:
+                return escolha
+            print(f"Erro: Digite um número entre {min_val} e {max_val}")
+        except ValueError:
+            print("Erro: Entrada inválida. Digite apenas números!")
 
 def listar_times_disponiveis(times: List[str]) -> None:
     """Lista todos os times disponíveis para seleção.
@@ -65,7 +76,9 @@ def selecionar_times(times: List[str], num_times: int) -> List[str]:
             if any(e < 1 or e > len(times) for e in indices):
                 raise ValueError("Números fora do intervalo válido")
             
-            return [times[i-1] for i in indices]
+            print([times[i-1] for i in indices])
+
+            return[times[i-1] for i in indices]
         
         except ValueError as e:
             print(f"Erro: {e}. Tente novamente.")
@@ -104,9 +117,41 @@ def exibir_grupos(grupos: List[List[str]]) -> None:
     Args:
         grupos: Lista de grupos a serem exibidos
     """
-    print("\nGrupos Sorteados:")
+    print("\nGrupos Sorteados:\n")
     for i, grupo in enumerate(grupos, 1):
-        print(f"Grupo {i}: {', '.join(grupo)}")
+        print(f"Grupo {i}: {', '.join(grupo)}\n")
+    print("\n")
+
+def realizar_jogo_dbelim(time1: str, time2: str, rodada: int, chave: str, resultados: List[dict]) -> ResultadoPartida:
+    """
+    Realiza um jogo entre dois times e retorna o vencedor e o perdedor.
+    Adiciona o resultado à lista de resultados.
+    """
+    print(f"\nJogo entre: {time1} e {time2}!\n")
+    print("Modos de partida")
+    print("1. Partida Rápida (Aleatória)")
+    print("2. Partida Personalizada")
+
+    escolha = obter_opcao_numerica(1, 2)
+
+    if escolha == 1:
+        resultado = jogar_partida(modo='auto', time1=time1, time2=time2)
+    elif escolha == 2:
+        resultado = jogar_partida(modo='manual', time1=time1, time2=time2)
+    else:
+        raise ValueError("Escolha inválida!")
+
+    # Adiciona o resultado à lista de resultados
+    resultados.append({
+        "rodada": rodada,
+        "chave": chave,
+        "time1": time1,
+        "time2": time2,
+        "vencedor": resultado.vencedor,
+        "perdedor": resultado.perdedor
+    })
+
+    return resultado
 
 def fase_grupos(times: List[str], num_grupos: int, num_classificados: int, ida_e_volta: bool) -> tuple:
     """Executa a fase de grupos do torneio.
@@ -136,15 +181,93 @@ def fase_grupos(times: List[str], num_grupos: int, num_classificados: int, ida_e
                 
                 # Jogos de ida e volta
                 for _ in range(2 if ida_e_volta else 1):
-                    vencedor, _, _, resultado = jogar_partida(0, time1, time2)
-                    placares[vencedor] += 3
-                    resultados.append(resultado)
+                    print(f"\nJogo entre: {time1} e {time2}!\n")
+                    print("Modos de partida")
+                    print("1. Partida Rápida (Aleatória)")
+                    print("2. Partida Personalizada")
+        
+                    escolha = obter_opcao_numerica(1, 2)
+        
+                    if escolha == 1:
+                        resultado = jogar_partida(modo='auto', time1=time1, time2=time2)
+                        placares[resultado.vencedor] += 3
+                        resultados.append(resultado)
+
+                    elif escolha == 2:
+                        if time1 in times and time2 in times:
+                            resultado = jogar_partida(modo='manual', time1=time1, time2=time2)
+                            placares[resultado.vencedor] += 3
+                            resultados.append(resultado)
+                        else:
+                            print("Times inválidos!")
         
         # Classificação por pontos
         grupo_ordenado = sorted(placares.items(), key=lambda x: -x[1])
         classificados.extend([time for time, _ in grupo_ordenado[:num_classificados]])
     
     return classificados, resultados
+
+def fase_double_elimination(times: List[str], resultados: List[dict]) -> tuple[List[str], List[dict]]:
+    
+    """Executa uma chave de eliminação dupla."""
+    vencedores = []
+    perdedores = []
+    rodada = 1
+    random.shuffle(times)
+
+    # Fase inicial (todos os times começam na chave de vencedores)
+    while len(times) > 1:
+        print(f"\n--- Rodada {rodada} ---")
+        novos_vencedores = []
+        novos_perdedores = []
+
+        # Jogos na chave de vencedores
+        for i in range(0, len(times), 2):
+            if i + 1 < len(times):
+                time1 = times[i]
+                time2 = times[i + 1]
+                resultado = realizar_jogo_dbelim(time1, time2, rodada, "vencedores", resultados)
+                resultados.append(resultado)
+                novos_vencedores.append(resultado.vencedor)
+                novos_perdedores.append(resultado.perdedor)
+
+        # Jogos na chave de perdedores (se houver times na chave de perdedores)
+        if perdedores:
+            novos_perdedores_chave = []
+            for i in range(0, len(perdedores), 2):
+                if i + 1 < len(perdedores):
+                    time1 = perdedores[i]
+                    time2 = perdedores[i + 1]
+                    resultado = realizar_jogo_dbelim(time1, time2, rodada, "vencedores", resultados)
+                    resultados.append(resultado)
+                    novos_perdedores_chave.append(resultado.vencedor)
+
+            perdedores = novos_perdedores_chave
+
+        # Atualiza as listas de vencedores e perdedores
+        vencedores = novos_vencedores
+        perdedores.extend(novos_perdedores)
+        times = vencedores
+        rodada += 1
+        random.shuffle(vencedores)
+        random.shuffle(perdedores)
+
+    # Final: o último vencedor da chave de vencedores enfrenta o último vencedor da chave de perdedores
+    if perdedores:
+        print(perdedores)
+        print("\n--- Final Lower ---")
+
+        resultado = realizar_jogo_dbelim(perdedores[0], perdedores[1], rodada, "vencedores", resultados)
+        resultados.append(resultado)
+
+        print("\n--- Final ---")
+        resultado = realizar_jogo_dbelim(vencedores[0], resultado.vencedor, rodada, "vencedores", resultados)
+        resultados.append(resultado)
+        
+        return resultado.vencedor, resultados
+    
+    else:
+        return vencedores, resultados
 
 def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
     """Executa a fase eliminatória do torneio.
@@ -171,11 +294,17 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
         novos_times = []
         for i in range(0, len(times), 2):
             time1, time2 = times[i], times[i+1]
-            vencedor, _, _, resultado = jogar_partida(0, time1, time2)
+            print(f"\nJogo entre: {time1} e {time2}!\n")
+            print("Modos de partida")
+            print("1. Partida Rápida (Aleatória)")
+            print("2. Partida Personalizada")
+            escolha = obter_opcao_numerica(1, 2)
+
+            resultado = jogar_partida(escolha, time1, time2)
             resultado["fase"] = fase_atual
             resultados.append(resultado)
-            novos_times.append(vencedor)
-            print(f"{time1} vs {time2} → {vencedor}")
+            novos_times.append(resultado.vencedor)
+            print(f"{time1} vs {time2} → {resultado.vencedor}")
         
         times = novos_times
     
@@ -216,9 +345,9 @@ def criar_torneio(times: List[str]) -> None:
         
         times_selecionados = selecionar_times(times, num_times)
         formato = validar_input_numerico(
-            "Formato (1-Grupos / 2-Mata-mata): ",
+            "Formato (1-Grupos / 2-Mata-mata / 3-Double Elimination): ",
             min_val=1,
-            max_val=2
+            max_val=3
         )
 
         resultados = []
@@ -249,12 +378,17 @@ def criar_torneio(times: List[str]) -> None:
                 num_classificados, 
                 ida_e_volta
             )
+        elif formato == 3:
+            campeao, resultados = fase_double_elimination(times_selecionados, resultados)
+            print(f"\n🏆 Campeão: {campeao} 🏆")
+            salvar_resultados_csv(nome_torneio, resultados)
+            print("CRIAR SALVAR RESULTADOS CSV PARA DOUBLE ELIMINATION, TESTAR COM MAIS QUE 4 TIMES E CRIAR FORMATO SUIÇO")
+
         else:
             classificados = times_selecionados
-
-        campeao, resultados = fase_mata_mata(classificados, resultados)
-        print(f"\n🏆 Campeão: {campeao[0]} 🏆")
-        salvar_resultados_csv(nome_torneio, resultados)
+            campeao, resultados = fase_mata_mata(classificados, resultados)
+            print(f"\n🏆 Campeão: {campeao[0]} 🏆")
+            salvar_resultados_csv(nome_torneio, resultados)
 
     except Exception as e:
         print(f"\nErro durante execução: {str(e)}")

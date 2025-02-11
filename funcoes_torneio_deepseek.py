@@ -423,6 +423,11 @@ def criar_torneio(times: List[str]) -> None:
                 num_classificados, 
                 ida_e_volta
             )
+            
+            campeao, resultados = fase_mata_mata(classificados, resultados)
+            print(f"\n🏆 Campeão: {campeao[0]} 🏆")
+            salvar_resultados_csv(nome_torneio, resultados)
+
         elif formato == 3:
             campeao, resultados = fase_double_elimination(times_selecionados, resultados)
             print(f"\n🏆 Campeão: {campeao} 🏆")

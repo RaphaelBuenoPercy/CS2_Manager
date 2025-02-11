@@ -293,14 +293,13 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
         
         novos_times = []
         for i in range(0, len(times), 2):
-
+            time1, time2 = times[i], times[i+1]
             print(f"\nJogo entre: {time1} e {time2}!\n")
             print("Modos de partida")
             print("1. Partida Rápida (Aleatória)")
             print("2. Partida Personalizada")
             escolha = obter_opcao_numerica(1, 2)
 
-            time1, time2 = times[i], times[i+1]
             resultado = jogar_partida(escolha, time1, time2)
             resultado["fase"] = fase_atual
             resultados.append(resultado)
@@ -383,6 +382,7 @@ def criar_torneio(times: List[str]) -> None:
             campeao, resultados = fase_double_elimination(times_selecionados, resultados)
             print(f"\n🏆 Campeão: {campeao} 🏆")
             salvar_resultados_csv(nome_torneio, resultados)
+            print("CRIAR SALVAR RESULTADOS CSV PARA DOUBLE ELIMINATION, TESTAR COM MAIS QUE 4 TIMES E CRIAR FORMATO SUIÇO")
 
         else:
             classificados = times_selecionados

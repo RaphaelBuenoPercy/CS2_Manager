@@ -1,6 +1,6 @@
 import random
 from funcoes_torneio_deepseek import criar_torneio
-from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time
+from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
 from funcoes_simulacao_deepseek import jogar_partida
 
 # ==================== FUNÇÕES AUXILIARES ====================
@@ -34,7 +34,8 @@ def menu_gerenciar_times():
         print("1. Adicionar time")
         print("2. Remover time")
         print("3. Listar times")
-        print("4. Voltar ao menu principal")
+        print("4. Calcular Overs dos Times")
+        print("5. Voltar ao menu principal")
         
         escolha = obter_opcao_numerica(1, 4)
         
@@ -55,6 +56,9 @@ def menu_gerenciar_times():
         elif escolha == 3:
             listar_times()
         elif escolha == 4:
+            calcular_overs_medios_times()
+            exibir_overs_medios_times()
+        elif escolha == 5:
             return
 
 def menu_partida():

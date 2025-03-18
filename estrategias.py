@@ -44,8 +44,7 @@ def estrategia_resultado(estrategia_ct, estrategia_tr):
     elif (estrategia_ct == "1" and estrategia_tr == "3") or \
          (estrategia_ct == "2" and estrategia_tr == "4") or \
          (estrategia_ct == "3" and estrategia_tr == "1") or \
-         (estrategia_ct == "4" and estrategia_tr == "2") or \
-         (estrategia_ct == "0" and estrategia_tr == "1"):
+         (estrategia_ct == "4" and estrategia_tr == "2"):
         return "ct"
     else:
         return "tr"

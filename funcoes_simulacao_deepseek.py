@@ -1,8 +1,8 @@
 import random
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Literal
-from estrategias import estrategias_por_mapa, estrategia_resultado
-from funcoes_prejogo_deepseek import times, vetar_e_escolher_mapas
+from estrategias_deepseek import estrategias_por_mapa, estrategia_resultado
+from funcoes_prejogo_deepseek import times, vetar_e_escolher_mapas, calcular_over_medio
 
 # ==================== CLASSES DE DADOS ====================
 @dataclass
@@ -96,12 +96,16 @@ def jogar_half(
         
         pontos_ct = 0
         pontos_tr = 0
+
+        # Calcula o over médio dos times
+        over_ct = calcular_over_medio(time_ct)
+        over_tr = calcular_over_medio(time_tr)
         
         for _ in range(max_rounds):
             idx_ct = escolher_estrategia(time_ct, estrategias_ct, modo)
             idx_tr = escolher_estrategia(time_tr, estrategias_tr, modo)
             
-            resultado = estrategia_resultado(idx_ct, idx_tr)
+            resultado = decidir_vencedor_round(over_ct, over_tr, "ct", idx_ct, idx_tr)
 
             if resultado == "ct":
                 pontos_ct += 1
@@ -296,3 +300,62 @@ def jogar_partida(
     
     # Modo automático
     # jogar_partida(modo='auto', time1="FURIA", time2="Liquid")
+
+
+def calcular_probabilidade_vitoria(
+    over_ct: float, 
+    over_tr: float, 
+    lado_time: str, 
+    estrategia_ct: str, 
+    estrategia_tr: str, 
+    fator_randomico: float = 0.1
+) -> float:
+    """
+    Calcula a probabilidade de vitória do time CT com base no over, lado, estratégias e fator randômico.
+    """
+    # Peso do over dos times
+    peso_over = 0.4
+    # Peso do lado do time (CT ou TR)
+    peso_lado = 0.3
+    # Peso das estratégias
+    peso_estrategia = 0.2
+    # Peso do fator randômico
+    peso_randomico = 0.1
+
+    # Diferença de over entre os times
+    diferenca_over = over_ct - over_tr
+
+    # Vantagem do lado (CT ou TR)
+    vantagem_lado = 1 if lado_time == "ct" else -1
+
+    # Resultado das estratégias
+    resultado_estrategia = estrategia_resultado(estrategia_ct, estrategia_tr)
+    vantagem_estrategia = 1 if resultado_estrategia == "ct" else -1
+
+    # Cálculo da probabilidade
+    probabilidade = (
+        (peso_over * diferenca_over) +
+        (peso_lado * vantagem_lado) +
+        (peso_estrategia * vantagem_estrategia) +
+        (peso_randomico * random.uniform(-1, 1))
+    )
+
+    # Normaliza a probabilidade para um valor entre 0 e 1
+    probabilidade = (probabilidade + 1) / 2
+    return probabilidade
+
+def decidir_vencedor_round(
+    over_ct: float, 
+    over_tr: float, 
+    lado_time: str, 
+    estrategia_ct: str, 
+    estrategia_tr: str
+) -> str:
+    """
+    Decide o vencedor do round com base no over, lado, estratégias e fator randômico.
+    """
+    probabilidade_ct = calcular_probabilidade_vitoria(over_ct, over_tr, lado_time, estrategia_ct, estrategia_tr)
+    if random.random() < probabilidade_ct:
+        return "ct"
+    else:
+        return "tr"

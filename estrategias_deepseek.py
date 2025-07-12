@@ -46,109 +46,244 @@ estrategias_por_mapa = {
 regras_vitoria_por_mapa = {
     "Mirage": {
         "ct_vence": [
-            ("1", "2"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("1", "3"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 3
             ("1", "5"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 5
             ("2", "2"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 2
             ("2", "4"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 4
+            ("2", "6"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 6
             ("3", "1"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 1
-            ("3", "3"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 3
+            ("3", "2"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("4", "4"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 4
             ("4", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
-            ("4", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 7
-            ("5", "5"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 5
-            ("5", "7"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 5
-            ("6", "4"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 4
-            ("6", "6"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
+            ("5", "6"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 6
+            ("5", "7"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 7
+            ("6", "5"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 5
+            ("6", "7"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 7
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
-            ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("1", "2"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("2", "1"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "3"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("3", "3"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 3
+            ("3", "4"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("3", "5"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 5
+            ("4", "1"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 7
+            ("5", "5"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 5
+            ("6", "2"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 2
+            ("6", "6"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
         ]
     },
     "Dust2": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
-            ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("1", "3"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 3
+            ("2", "3"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "5"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 5
+            ("2", "7"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 7
+            ("3", "1"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 1
+            ("3", "2"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("4", "4"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 4
+            ("4", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("4", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 7
+            ("5", "2"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 2
+            ("5", "4"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 4
+            ("5", "5"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 5
+            ("6", "6"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
+            ("6", "7"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 7
+            ("7", "6"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
+            ("7", "7"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 7
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
-            ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("1", "6"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("1", "7"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("2", "2"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "4"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "6"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 3
+            ("3", "3"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("3", "5"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 5
+            ("4", "1"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "2"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 7
+            ("4", "6"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("5", "1"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 2
+            ("5", "7"),   # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 6
+            ("6", "2"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 5
+            ("6", "3"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 2
+            ("6", "4"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
+            ("6", "5"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 5
+            ("7", "1"),   # CT ganha se CT escolher estratégia 7 e TR escolher estratégia 5
+            ("7", "3"),   # CT ganha se CT escolher estratégia 7 e TR escolher estratégia 2
         ]
     },
     "Inferno": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("1", "3"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 3
+            ("2", "2"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 2
+            ("2", "3"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("3", "1"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 1
             ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("3", "4"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("4", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("5", "4"),  # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 4
+            ("5", "6"),  # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 6
+            ("6", "4"),  # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 4
+            ("6", "6"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
         ],
         "tr_vence": [
             ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
-            ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("1", "4"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("2", "1"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("3", "3"),   # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 3
+            ("3", "6"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 6
+            ("4", "1"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "4"),  # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 4
+            ("4", "6"),  # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 6
+            ("5", "3"),  # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 3
+            ("5", "5"),   # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 5
+            ("6", "2"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 2
+            ("6", "3"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 3
+            ("6", "5"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 3
         ]
     },
     "Nuke": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
-            ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("1", "4"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 4
+            ("2", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("2", "5"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("2", "6"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 6
+            ("3", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("3", "3"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("3", "4"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("4", "5"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("5", "2"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("5", "4"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 4
+            ("6", "6"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 6
+            ("6", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 7
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
-            ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("1", "3"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 3
+            ("1", "5"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 5
+            ("1", "6"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 6
+            ("2", "1"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "7"),   # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 7
+            ("3", "2"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("3", "4"),   # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("4", "4"),  # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 4
+            ("4", "6"),  # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 6
+            ("5", "3"),  # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 3
+            ("5", "5"),   # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 5
+            ("6", "1"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 1
+            ("6", "2"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 2
         ]
     },
     "Ancient": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
-            ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("1", "2"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "3"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("2", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("3", "1"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("3", "3"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("4", "2"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("4", "5"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("4", "6"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("5", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("5", "5"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("6", "6"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("6", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
-            ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("1", "3"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("1", "6"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "1"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "2"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("3", "2"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("3", "7"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("4", "1"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "4"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("4", "5"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("5", "6"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("5", "7"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("6", "3"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("6", "5"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
         ]
     },
     "Anubis": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
-            ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("1", "2"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "3"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("2", "4"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("3", "1"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("4", "5"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("4", "6"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("5", "3"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("5", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("5", "7"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("6", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("6", "7"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("7", "2"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("7", "6"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("1", "3"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("1", "4"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("1", "6"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "1"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "2"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("2", "7"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("3", "2"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
             ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("3", "7"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("4", "1"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "3"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("4", "7"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("5", "1"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("5", "5"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("5", "6"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("6", "3"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
+            ("6", "4"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("6", "6"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("7", "2"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("7", "5"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
         ]
     },
     "Train": {
         "ct_vence": [
-            ("1", "4"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 4
-            ("2", "1"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 1
-            ("3", "2"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
-            ("4", "3")   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("1", "1"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 1
+            ("1", "2"),  # CT ganha se CT escolher estratégia 1 e TR escolher estratégia 2
+            ("2", "3"),  # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("2", "4"),   # CT ganha se CT escolher estratégia 2 e TR escolher estratégia 4
+            ("3", "2"),   # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 2
+            ("3", "5"),  # CT ganha se CT escolher estratégia 3 e TR escolher estratégia 5
+            ("4", "1"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "3"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 3
+            ("4", "5"),   # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("5", "4"),  # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 4
+            ("5", "7"),  # CT ganha se CT escolher estratégia 5 e TR escolher estratégia 7
+            ("6", "6"),  # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 6
+            ("6", "7"),   # CT ganha se CT escolher estratégia 6 e TR escolher estratégia 7
+            ("7", "6"),   # CT ganha se CT escolher estratégia 7 e TR escolher estratégia 6
         ],
         "tr_vence": [
-            ("1", "2"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 2
-            ("2", "3"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 3
+            ("1", "4"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 4
+            ("1", "5"),  # TR ganha se CT escolher estratégia 1 e TR escolher estratégia 5
+            ("2", "1"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 1
+            ("2", "2"),  # TR ganha se CT escolher estratégia 2 e TR escolher estratégia 2
+            ("3", "3"),   # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 3
             ("3", "4"),  # TR ganha se CT escolher estratégia 3 e TR escolher estratégia 4
-            ("4", "1")   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 1
+            ("4", "2"),   # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 2
+            ("4", "5"),  # TR ganha se CT escolher estratégia 4 e TR escolher estratégia 5
+            ("4", "6"),  # CT ganha se CT escolher estratégia 4 e TR escolher estratégia 6
+            ("5", "5"),  # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 5
+            ("5", "6"),  # TR ganha se CT escolher estratégia 5 e TR escolher estratégia 6
+            ("6", "2"),   # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 2
+            ("6", "3"),  # TR ganha se CT escolher estratégia 6 e TR escolher estratégia 3
+            ("7", "1"),  # CT ganha se CT escolher estratégia 7 e TR escolher estratégia 1
         ]
     },
     # Adicione mais mapas e regras conforme necessário
@@ -173,10 +308,6 @@ def estrategia_resultado(estrategia_ct: str, estrategia_tr: str, mapa: str) -> s
     # Obtém as regras de vitória para o mapa
     regras_ct = regras_vitoria_por_mapa[mapa]["ct_vence"]
     regras_tr = regras_vitoria_por_mapa[mapa]["tr_vence"]
-
-    # Verifica se as estratégias são iguais (empate)
-    if estrategia_ct == estrategia_tr:
-        return random.choice(["ct", "tr"])
 
     # Verifica se o CT vence
     if (estrategia_ct, estrategia_tr) in regras_ct:

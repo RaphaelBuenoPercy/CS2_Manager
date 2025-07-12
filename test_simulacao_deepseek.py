@@ -1,6 +1,6 @@
 # test_funcoes_simulacao_deepseek.py
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 from funcoes_simulacao_deepseek import (
     validar_time,
     escolher_estrategia,
@@ -10,11 +10,13 @@ from funcoes_simulacao_deepseek import (
     ResultadoMapa,
     ResultadoPartida,
     times,
-    estrategias_por_mapa
+    calcular_over_medio,
+    decidir_vencedor_round
 )
+from estrategias_deepseek import estrategia_resultado
 
 # ==================== TESTES UNITÁRIOS ====================
-times.extend(["Alpha", "Beta"])
+times.extend(["Furia", "G2"])
 
 class TestValidarTime(unittest.TestCase):
     def test_time_valido(self):
@@ -37,144 +39,224 @@ class TestEscolherEstrategia(unittest.TestCase):
         with patch('random.randint', return_value=0):
             self.assertEqual(escolher_estrategia("Bot", estrategias, 'auto'), 0)
 
-class TestJogarHalf(unittest.TestCase):
-    @patch('funcoes_simulacao_deepseek.escolher_estrategia')
-    @patch('funcoes_simulacao_deepseek.estrategia_resultado')
-    @patch.dict('estrategias.estrategias_por_mapa', 
-                {'Dust2': {'ct': ['Estratégia1', 'Estratégia2'], 
-                          'tr': ['Estratégia3', 'Estratégia4']}})
-    def test_half_normal(self, mock_resultado, mock_estrategia):
-        # Configuração para 12 rounds (24 chamadas: 2 por round)
-        mock_estrategia.side_effect = [0, 0] * 12  # 24 valores (2 por round)
-        mock_resultado.return_value = "ct"  # CT vence todos os rounds
-        
-        ct, tr = jogar_half("Alpha", "Beta", "Dust2", "auto")
-        
-        self.assertEqual(ct, 12)  # CT venceu todos os 12 rounds
-        self.assertEqual(tr, 0)
+class TestEstrategiaResultado(unittest.TestCase):
+    def test_ct_vence(self):
+        # Testa combinação onde CT deve vencer
+        mapa = "Mirage"
+        self.assertEqual(estrategia_resultado("1", "1", mapa), "ct")
+
+    def test_tr_vence(self):
+        # Testa combinação onde TR deve vencer
+        mapa = "Mirage"
+        self.assertEqual(estrategia_resultado("1", "2", mapa), "tr")
+
+    def test_aleatorio(self):
+        # Testa combinação não definida nas regras
+        mapa = "Mirage"
+        resultado = estrategia_resultado("4", "4", mapa)
+        self.assertIn(resultado, ["ct", "tr"])
 
     def test_mapa_invalido(self):
         with self.assertRaises(ValueError):
-            jogar_half("Alpha", "Beta", "mapa_falso", "auto")
+            estrategia_resultado("1", "1", "MapaInexistente")
+
+class TestDecidirVencedorRound(unittest.TestCase):
+    @patch('funcoes_simulacao_deepseek.calcular_probabilidade_vitoria')
+    def test_decide_vencedor(self, mock_probabilidade):
+        # Configura probabilidade para CT vencer
+        mock_probabilidade.return_value = 0.8  # 80% de chance de CT vencer
+        
+        # CT deve vencer na maioria dos casos
+        resultados = [decidir_vencedor_round(80, 70, "ct", "1", "2") for _ in range(100)]
+        ct_wins = resultados.count("ct")
+        self.assertGreater(ct_wins, 55)  # Deve vencer pelo menos 70% das vezes
+        
+        # Configura probabilidade para TR vencer
+        mock_probabilidade.return_value = 0.3  # 30% de chance de CT vencer (70% de TR)
+        
+        # TR deve vencer na maioria dos casos
+        resultados = [decidir_vencedor_round(70, 80, "tr", "2", "1") for _ in range(100)]
+        tr_wins = resultados.count("tr")
+        self.assertGreater(tr_wins, 55)
+
+class TestJogarHalf(unittest.TestCase):
+    @patch('funcoes_simulacao_deepseek.escolher_estrategia')
+    @patch('funcoes_simulacao_deepseek.calcular_over_medio')
+    @patch('funcoes_simulacao_deepseek.decidir_vencedor_round')
+    def test_half_normal(self, mock_decidir, mock_over, mock_estrategia):
+        # Configura mocks
+        mock_estrategia.side_effect = [0, 0] * 12  # 24 valores (2 por round)
+        mock_over.side_effect = [85.0, 80.0]  # Over para CT e TR
+        mock_decidir.side_effect = ["ct"] * 12  # CT vence todos os rounds
+        
+        ct, tr = jogar_half("Furia", "G2", "Dust2", "auto")
+        
+        self.assertEqual(ct, 12)
+        self.assertEqual(tr, 0)
+        
+        # Verifica se calcular_over_medio foi chamado corretamente
+        mock_over.assert_any_call("Furia")
+        mock_over.assert_any_call("G2")
+        
+        # Verifica se decidir_vencedor_round foi chamado 12 vezes
+        self.assertEqual(mock_decidir.call_count, 12)
+
+    @patch('funcoes_simulacao_deepseek.escolher_estrategia')
+    @patch('funcoes_simulacao_deepseek.calcular_over_medio')
+    @patch('funcoes_simulacao_deepseek.decidir_vencedor_round')
+    def test_half_misto(self, mock_decidir, mock_over, mock_estrategia):
+        # Configura vitórias alternadas
+        mock_estrategia.side_effect = [0, 0] * 12
+        mock_over.side_effect = [85.0, 80.0]
+        mock_decidir.side_effect = ["ct", "tr"] * 6  # Alterna vitórias
+        
+        ct, tr = jogar_half("Furia", "G2", "Dust2", "auto")
+        
+        self.assertEqual(ct, 6)
+        self.assertEqual(tr, 6)
 
 class TestJogarMapa(unittest.TestCase):
     @patch('funcoes_simulacao_deepseek.jogar_half')
     def test_mapa_completo(self, mock_half):
-        mock_half.side_effect = [(10, 2), (5, 3)]
+        mock_half.side_effect = [(10, 2), (5, 3)]  # Primeiro half: 10-2, segundo: 5-3
         
-        resultado = jogar_mapa("Alpha", "Beta", "Dust2", "auto")
-        self.assertEqual(resultado.placar_time1, 13)
-        self.assertEqual(resultado.placar_time2, 7)
+        resultado = jogar_mapa("Furia", "G2", "Dust2", "auto")
+        self.assertEqual(resultado.placar_time1, 13)  # 10 + 3 = 13
+        self.assertEqual(resultado.placar_time2, 7)    # 2 + 5 = 7
 
     @patch('funcoes_simulacao_deepseek.jogar_half')
     def test_vitoria_rapida(self, mock_half):
-        mock_half.return_value = (13, 0)
-        resultado = jogar_mapa("Alpha", "Beta", "Dust2", "auto")
+        mock_half.return_value = (13, 0)  # Vitória no primeiro half
+        resultado = jogar_mapa("Furia", "G2", "Dust2", "auto")
+        self.assertEqual(resultado.placar_time1, 13)
         self.assertEqual(resultado.placar_time2, 0)
+
+    @patch('funcoes_simulacao_deepseek.jogar_half')
+    def test_overtime(self, mock_half):
+        # Primeiro half: empate 10-10
+        # Segundo half: empate 3-3 (total 13-13)
+        # Overtime: Furia vence 4-2
+        mock_half.side_effect = [
+            (10, 10),   # Primeiro half
+            (3, 3),      # Segundo half (continuação)
+            (2, 1),      # Primeira parte do overtime (CT)
+            (1, 1)       # Segunda parte do overtime (TR)
+        ]
+        
+        resultado = jogar_mapa("Furia", "G2", "Dust2", "auto")
+        self.assertEqual(resultado.placar_time1, 16)  # 10 + 3 + 2 + 1 = 16
+        self.assertEqual(resultado.placar_time2, 15)  # 10 + 3 + 1 + 1 = 15
 
 class TestJogarPartida(unittest.TestCase):
     @patch('funcoes_simulacao_deepseek.vetar_e_escolher_mapas')
     @patch('funcoes_simulacao_deepseek.jogar_mapa')
-    def test_partida_valida(self, mock_mapa, mock_vetar):
-        # Configuração para 3 mapas (melhor de 3)
-        mock_vetar.return_value = ["Dust2", "Inferno", "Mirage"]
+    @patch('funcoes_simulacao_deepseek.calcular_over_medio')
+    def test_partida_valida(self, mock_over, mock_mapa, mock_vetar):
+        # 1. Garantir que os times existam
+        times.extend(["Furia", "G2"])
         
-        # Simula resultados sequenciais dos mapas:
-        # - Alpha vence o primeiro
-        # - Beta vence o segundo
-        # - Alpha vence o terceiro
+        # 2. Configurar mocks
+        mock_vetar.return_value = ["Dust2", "Inferno", "Mirage"]
+        mock_over.return_value = 80.0  # Valor fixo para over
+        
+        # 3. Criar objetos ResultadoMapa completos
         mock_mapa.side_effect = [
             ResultadoMapa(
                 mapa="Dust2",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=13,
-                placar_time2= 7
+                placar_time2=7
             ),
             ResultadoMapa(
                 mapa="Inferno",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=10,
                 placar_time2=13
             ),
             ResultadoMapa(
                 mapa="Mirage",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=13,
                 placar_time2=1
             )
         ]
         
-        # Executa a partida
-        resultado = jogar_partida(modo='auto', time1="Alpha", time2="Beta")
+        # 4. Executar teste
+        resultado = jogar_partida(modo='auto', time1="Furia", time2="G2")
         
-        # Verificações
+        # 5. Verificações
         self.assertIsInstance(resultado, ResultadoPartida)
-        self.assertEqual(len(resultado.mapas), 3)  # Todos os mapas executados
-        self.assertEqual(resultado.vencedor, "Alpha")
+        self.assertEqual(len(resultado.mapas), 3)
+        self.assertEqual(resultado.vencedor, "Furia")
         
-        # Verifica a contagem de vitórias
-        vitorias_alpha = sum(1 for m in resultado.mapas if m.placar_time1 > m.placar_time2)
-        vitorias_beta = sum(1 for m in resultado.mapas if m.placar_time2 > m.placar_time1)
-        self.assertEqual(vitorias_alpha, 2)
-        self.assertEqual(vitorias_beta, 1)
+        # 6. Limpeza
+        times.remove("Furia")
+        times.remove("G2")
 
     @patch('funcoes_simulacao_deepseek.vetar_e_escolher_mapas', return_value=[])
-    def test_sem_mapas_validos(self, mock_vetar):
-        resultado = jogar_partida(modo='auto', time1="Alpha", time2="Beta")
+    @patch('funcoes_simulacao_deepseek.calcular_over_medio')
+    def test_sem_mapas_validos(self, mock_over, mock_vetar):
+        mock_over.return_value = 80.0
+        times.extend(["Furia", "G2"])
+        resultado = jogar_partida(modo='auto', time1="Furia", time2="G2")
         self.assertIsNone(resultado)
+        times.remove("Furia")
+        times.remove("G2")
 
 # ==================== TESTES DE INTEGRAÇÃO ====================
 
 class TestIntegracao(unittest.TestCase):
     @patch('funcoes_simulacao_deepseek.vetar_e_escolher_mapas')
     @patch('funcoes_simulacao_deepseek.jogar_mapa')
-    @patch('funcoes_simulacao_deepseek.estrategia_resultado')
-    def test_fluxo_completo(self, mock_resultado, mock_mapa, mock_vetar):
-        # Configurar mocks
-        mock_vetar.return_value = ["Dust2", "Inferno", "Mirage"]
-        mock_resultado.side_effect = ["ct", "tr"] * 6  # Padrão de resultados alternados
+    @patch('funcoes_simulacao_deepseek.calcular_over_medio')
+    def test_fluxo_completo(self, mock_over, mock_mapa, mock_vetar):
+        # 1. Garantir que os times existam
+        times.extend(["Furia", "G2"])
         
-        # Configurar resultados sequenciais para cada mapa
+        # 2. Configurar mocks
+        mock_vetar.return_value = ["Dust2", "Inferno", "Mirage"]
+        mock_over.return_value = 80.0  # Valor fixo para over
+        
+        # 3. Criar objetos ResultadoMapa completos
         mock_mapa.side_effect = [
             ResultadoMapa(
                 mapa="Dust2",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=13,
                 placar_time2=7
             ),
             ResultadoMapa(
                 mapa="Inferno",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=10,
                 placar_time2=13
             ),
             ResultadoMapa(
                 mapa="Mirage",
-                time_ct="Alpha",
-                time_tr="Beta",
+                time_ct="Furia",
+                time_tr="G2",
                 placar_time1=13,
                 placar_time2=1
             )
         ]
 
-        # Executar teste
-        times.extend(["Alpha", "Beta"])
-        resultado = jogar_partida(modo='auto', time1="Alpha", time2="Beta")
+        # 4. Executar teste
+        resultado = jogar_partida(modo='auto', time1="Furia", time2="G2")
         
-        # Verificações
+        # 5. Verificações
         self.assertIsNotNone(resultado)
-        self.assertEqual(len(resultado.mapas), 3)  # Para ao atingir 2 vitórias
-        self.assertEqual(resultado.vencedor, "Alpha")
+        self.assertEqual(len(resultado.mapas), 3)
+        self.assertEqual(resultado.vencedor, "Furia")
         
-        # Limpeza
-        times.remove("Alpha")
-        times.remove("Beta")
-
+        # 6. Limpeza
+        times.remove("Furia")
+        times.remove("G2")
+        
 # ==================== EXECUÇÃO DOS TESTES ====================
 
 if __name__ == '__main__':

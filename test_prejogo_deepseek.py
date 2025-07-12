@@ -22,7 +22,6 @@ class TestPreJogo(unittest.TestCase):
         self.assertEqual(len(times), 1)
 
     def test_adicionar_time_duplicado(self):
-        adicionar_time("MIBR")
         with self.assertRaisesRegex(ValueError, "Time 'MIBR' já está registrado"):
             adicionar_time("MIBR")
 

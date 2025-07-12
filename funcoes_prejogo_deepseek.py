@@ -104,8 +104,8 @@ class Time:
 # Exemplo de uso
 if __name__ == "__main__":
     # Criando times
-    time_a = Time("Time A")
-    time_b = Time("Time B")
+    time_a = Time("Furia")
+    time_b = Time("G2")
 
     # Carregando jogadores de um arquivo CSV
     time_a.carregar_jogadores_csv("jogadores.csv")
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 times: List[str] = []
 
 # Estratégias importadas
-from estrategias import estrategias_por_mapa
+from estrategias_deepseek import estrategias_por_mapa
 
 def adicionar_time(nome: str) -> None:
     """Adiciona um novo time à base de dados, validando entradas.

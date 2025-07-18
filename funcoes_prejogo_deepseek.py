@@ -120,7 +120,7 @@ if __name__ == "__main__":
 times: List[str] = []
 
 # Estratégias importadas
-from estrategias import estrategias_por_mapa
+from estrategias_deepseek import estrategias_por_mapa
 
 def adicionar_time(nome: str) -> None:
     """Adiciona um novo time à base de dados, validando entradas.
@@ -188,6 +188,7 @@ def calcular_over_medio(time_nome: str, arquivo_csv: str = "jogadores.csv") -> f
             for linha in reader:
                 if linha["time"].strip().lower() == time_nome.strip().lower():
                     overs.append(float(linha["over"]))
+                    overs.sort()
             if not overs:
                 raise ValueError(f"Nenhum jogador encontrado para o time '{time_nome}'")
             return sum(overs) / len(overs)
@@ -346,9 +347,10 @@ def exibir_overs_medios_times():
     """
     try:
         overs_medios = calcular_overs_medios_times()
+        overs_ordenados = sorted(overs_medios.items(), key=lambda x: x[1], reverse=True)
         print("\n=== OVERS MÉDIOS DOS TIMES ===")
-        for time, over_medio in overs_medios.items():
-            print(f"{time}: {over_medio:.2f}")
+        for time, over_medio in overs_ordenados:
+            print(f"{time}: {over_medio}")
         print("=" * 30)
     except Exception as e:
         print(f"Erro ao exibir overs médios: {str(e)}")

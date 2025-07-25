@@ -37,7 +37,7 @@ def menu_gerenciar_times():
         print("4. Calcular Overs dos Times")
         print("5. Voltar ao menu principal")
         
-        escolha = obter_opcao_numerica(1, 4)
+        escolha = obter_opcao_numerica(1, 5)
         
         if escolha == 1:
             nome = input("Nome do novo time: ").strip()

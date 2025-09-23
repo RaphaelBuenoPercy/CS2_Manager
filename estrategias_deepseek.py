@@ -5,7 +5,7 @@ estrategias_por_mapa = {
     "Mirage": {
         "tr": ["Rush A", "Exec A", "Pop Palacio", "Split A (3 Liga, 1 Caverna e 1 Palacio)",
                "Split B 3-2 (3 L, 2 Tapete)", "Exec B", "Contato Tapete"],
-        "ct": ["Soft A", "Batida 2 Palacio", "Setup A: 1 Areia 1 Sanduiche", "Batida Meio (2 Rushando Top Mid, 1 Olhando Rato),"
+        "ct": ["Soft A", "Batida 2 Palacio", "Setup A: 1 Areia 1 Sanduiche", "Batida Meio (2 Rushando Top Mid, 1 Olhando Rato)",
                 "Boost no Overdrive", "Setup B: 2L", "Default"]
     },
     "Dust2": {

@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 from funcoes_torneio_deepseek import criar_torneio
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
 from funcoes_simulacao_deepseek import jogar_partida
@@ -109,6 +110,23 @@ def menu_torneio():
         elif escolha == 3:
             return
 
+def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
+    """
+    Carrega os dados dos jogadores diretamente de um arquivo CSV.
+    
+    Args:
+        caminho_do_arquivo (str): O nome do arquivo (ex: 'jogadores.csv').
+        
+    Returns:
+        pd.DataFrame: Um DataFrame com todos os jogadores carregados.
+    """
+    try:
+        return pd.read_csv(caminho_do_arquivo)
+    except FileNotFoundError:
+        print(f"Erro: O arquivo '{caminho_do_arquivo}' não foi encontrado.")
+        print("Certifique-se de que o arquivo CSV está na mesma pasta que o script.")
+        return None
+
 # ==================== MENU PRINCIPAL ====================
 def main():
     # Perguntar ao iniciar se deseja carregar o times.csv
@@ -116,6 +134,7 @@ def main():
     if confirmar_acao("Deseja carregar o arquivo times.csv ao iniciar?"):
         try:
             carregar_times_csv()  # Carrega o arquivo padrão
+            pd.DataFrame = carregar_jogadores_de_arquivo("jogadores.csv")
         except FileNotFoundError:
             print(f"Arquivo 'times.csv' não encontrado no diretório atual!\n")
 

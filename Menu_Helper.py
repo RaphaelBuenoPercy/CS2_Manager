@@ -2,7 +2,7 @@ import random
 import pandas as pd
 from funcoes_torneio_deepseek import criar_torneio
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
-from funcoes_simulacao_deepseek import jogar_partida
+from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto
 
 # ==================== FUNÇÕES AUXILIARES ====================
 def mostrar_titulo(texto: str):
@@ -36,9 +36,10 @@ def menu_gerenciar_times():
         print("2. Remover time")
         print("3. Listar times")
         print("4. Calcular Overs dos Times")
-        print("5. Voltar ao menu principal")
+        print("5. Testar Partidas em Lotes")
+        print("6. Voltar ao menu principal")
         
-        escolha = obter_opcao_numerica(1, 5)
+        escolha = obter_opcao_numerica(1, 6)
         
         if escolha == 1:
             nome = input("Nome do novo time: ").strip()
@@ -60,6 +61,8 @@ def menu_gerenciar_times():
             calcular_overs_medios_times()
             exibir_overs_medios_times()
         elif escolha == 5:
+            resultados_partidas, vitorias, kd_df = simular_partidas_em_lote_auto("Furia", "Liquid", n=200)
+        elif escolha == 6:
             return
 
 def menu_partida():
@@ -131,10 +134,11 @@ def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
 def main():
     # Perguntar ao iniciar se deseja carregar o times.csv
     mostrar_titulo("Bem-vindo ao simulador de CS2!")
+
     if confirmar_acao("Deseja carregar o arquivo times.csv ao iniciar?"):
         try:
             carregar_times_csv()  # Carrega o arquivo padrão
-            pd.DataFrame = carregar_jogadores_de_arquivo("jogadores.csv")
+            df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
         except FileNotFoundError:
             print(f"Arquivo 'times.csv' não encontrado no diretório atual!\n")
 

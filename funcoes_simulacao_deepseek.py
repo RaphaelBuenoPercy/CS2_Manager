@@ -1,6 +1,9 @@
+import csv
 import random
 from dataclasses import dataclass
 from typing import Any, List, Tuple, Dict, Literal
+
+from colorama import Fore, Style
 
 import pandas as pd
 from estrategias_deepseek import estrategias_por_mapa, estrategia_resultado
@@ -69,7 +72,8 @@ def escolher_estrategia(time: str, estrategias: List[str], modo: ModoJogo) -> in
     
     while True:
         try:
-            escolha = int(input("Escolha (número): ")) - 1
+            escolha = 4
+            - 1
             if 0 <= escolha < len(estrategias):
                 return escolha
             print("Número inválido!")
@@ -123,7 +127,7 @@ def jogar_half(
                 pontos_tr += 1
                 print(f"{time_tr} (TR) venceu! CT {pontos_iniciais_ct + pontos_ct}-{pontos_iniciais_tr + pontos_tr} TR")
             
-            simular_kills_do_round(resultado, jogadores_ct, jogadores_tr)
+            simular_kills_do_round(resultado, jogadores_ct, jogadores_tr, mapa)
 
             # Verifica se atingiu a meta considerando os pontos iniciais
             if (pontos_iniciais_ct + pontos_ct) >= meta or (pontos_iniciais_tr + pontos_tr) >= meta:
@@ -142,8 +146,12 @@ def jogar_mapa(time1: str, time2: str, mapa: str, modo: ModoJogo, jogadores_time
     """Executa uma partida completa em um mapa"""
     print(modo)
     print(ModoJogo)
+    
     try:
         resultado = ResultadoMapa(mapa=mapa, time_ct=time1, time_tr=time2, placar_time1=0, placar_time2=0)
+        resetar_estatisticas_para_mapa(jogadores_time1, mapa)
+        resetar_estatisticas_para_mapa(jogadores_time2, mapa)
+
         
         # Primeiro half (CT: time1, TR: time2)
         resultado.placar_time1, resultado.placar_time2 = jogar_half(
@@ -181,21 +189,15 @@ def jogar_mapa(time1: str, time2: str, mapa: str, modo: ModoJogo, jogadores_time
         # Verificar empate e iniciar overtime
         if resultado.placar_time1 == resultado.placar_time2:
             overtime_count = 1
-            resultado = jogar_ot(time1, time2, mapa, modo, resultado, overtime_count, jogadores_time1, jogadores_time2)
+            resultado = jogar_ot(time1, time2, mapa, modo, resultado, overtime_count,
+                     jogadores_time1=jogadores_time1, 
+                     jogadores_time2=jogadores_time2)
+
 
         print("\n" + "="*40 + "\n🎉 FIM DE MAPA! 🎉")
         print(f"Placar Final: {time1} {resultado.placar_time1} x {resultado.placar_time2} {time2}")
         print("="*40 + "\n")
-        print(f"📊 Estatísticas Finais - {time1}:")
 
-        for p in sorted(jogadores_time1, key=lambda x: x['kills'], reverse=True):
-            print(f" - {p['nome']:<12} | K: {p['kills']:<3} D: {p['deaths']:<3} | +/-: {p['kills'] - p['deaths']:<3} | Role: {p['role']}")
-        
-        print(f"\n📊 Estatísticas Finais - {time2}:")
-        
-        for p in sorted(jogadores_time2, key=lambda x: x['kills'], reverse=True):
-            print(f" - {p['nome']:<12} | K: {p['kills']:<3} D: {p['deaths']:<3} | +/-: {p['kills'] - p['deaths']:<3} | Role: {p['role']}")
-        
         return resultado
 
     except Exception as e:
@@ -203,7 +205,10 @@ def jogar_mapa(time1: str, time2: str, mapa: str, modo: ModoJogo, jogadores_time
         resultado.erro = True
         return resultado
 
-def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overtime_count, jogadores_time1: int = 0, jogadores_time2: int = 0) -> ResultadoMapa:
+def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overtime_count: int,
+             jogadores_time1: List[Dict[str, Any]],
+             jogadores_time2: List[Dict[str, Any]]) -> ResultadoMapa:
+        
         while True:
             print(f"\n=== Overtime {overtime_count} (Placar: {resultado.placar_time1}-{resultado.placar_time2}) ===")
             
@@ -233,17 +238,17 @@ def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overt
                 
                 # TR joga até 3 rounds OU até atingir 4 vitórias
                 placar_time2_1ot, placar_time1_1ot = jogar_half(
-                time_ct=time1,
-                time_tr=time2,
-                jogadores_ct=jogadores_time1, # Passando a lista de jogadores para o parâmetro correto
-                jogadores_tr=jogadores_time2, # Passando a lista de jogadores para o parâmetro correto
+                time_ct=time2,
+                time_tr=time1,
+                jogadores_ct=jogadores_time2, # Passando a lista de jogadores para o parâmetro correto
+                jogadores_tr=jogadores_time1, # Passando a lista de jogadores para o parâmetro correto
                 mapa=mapa,
                 modo=modo,
                 # Os argumentos abaixo são opcionais, você só precisa passar se quiser mudar o padrão
                 max_rounds=3,
                 meta=placar_meta,
-                pontos_iniciais_ct=resultado.placar_time1,
-                pontos_iniciais_tr=resultado.placar_time2,
+                pontos_iniciais_ct=resultado.placar_time2,
+                pontos_iniciais_tr=resultado.placar_time1,
                  )
                 
                 resultado.placar_time1 += placar_time1_1ot
@@ -259,7 +264,8 @@ def jogar_ot(time1: str, time2: str, mapa: str, modo: ModoJogo, resultado, overt
                 return resultado
             else:
                 overtime_count += 1
-                return jogar_ot(time1, time2, mapa, modo, resultado, overtime_count)
+                return jogar_ot(time1, time2, mapa, modo, resultado, overtime_count, jogadores_time1=jogadores_time1, 
+                     jogadores_time2=jogadores_time2)
 
 def jogar_partida(
     modo: ModoJogo = 'manual',
@@ -268,6 +274,7 @@ def jogar_partida(
     fase_torneio: str = None ) -> ResultadoPartida:
     """Gerencia uma partida completa entre dois times"""
     try:
+        times_config = carregar_times_config("times.csv")
         # Validação inicial
         try:
             time1 = validar_time(time1) if time1 else random.choice(times)
@@ -316,12 +323,16 @@ def jogar_partida(
                 
                 print(f"\nPlacar atual: {time1} {vitorias_time1}-{vitorias_time2} {time2}")
                 
+                mostrar_estatisticas_por_mapa(jogadores_time1, jogadores_time2, mapa, time1, time2, times_config)
+
+
                 if vitorias_time1 >= 2 or vitorias_time2 >= 2:
                     break
-
+                    
             except Exception as e:
                 print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
                 return resultado  # Retorna resultados parciais
+            
 
         resultado.vencedor, resultado.perdedor = (time1, time2) if vitorias_time1 > vitorias_time2 else (time2, time1)
 
@@ -331,20 +342,16 @@ def jogar_partida(
         print("\n" + "="*40 + "\n🎉 FIM DE JOGO! 🎉")
         print(f"Placar Final: {time1} {vitorias_time1} x {vitorias_time2} {time2}")
         print("="*40 + "\n")
-        print(f"📊 Estatísticas Finais - {time1}:")
+        #print(f"📊 Estatísticas Finais - {time1}:")
 
-        for p in sorted(jogadores_time1, key=lambda x: x['kills'], reverse=True):
-            print(f" - {p['nome']:<12} | K: {p['kills']:<3} D: {p['deaths']:<3} | +/-: {p['kills'] - p['deaths']:<3} | Role: {p['role']}")
-        print(f"\n📊 Estatísticas Finais - {time2}:")
-        
-        for p in sorted(jogadores_time2, key=lambda x: x['kills'], reverse=True):
-            print(f" - {p['nome']:<12} | K: {p['kills']:<3} D: {p['deaths']:<3} | +/-: {p['kills'] - p['deaths']:<3} | Role: {p['role']}")
-        
         # Mostra os placares dos mapas
         print("\nPlacares dos Mapas:")
         for mapa_result in resultado.mapas:
             print(f"- {mapa_result.mapa}: {time1} {mapa_result.placar_time1} x {mapa_result.placar_time2} {time2}")
         
+        print("="*40 + "\n")
+        mostrar_estatisticas_finais(jogadores_time1, jogadores_time2, time1, time2, times_config)
+
         return resultado
 
     except Exception as e:
@@ -368,68 +375,54 @@ def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
     Filtra o DataFrame para obter os jogadores de um time específico e
     formata os dados para a simulação.
     """
-    print("COLUNAS DETECTADAS:", df.columns)
-    print("PRIMEIRAS 5 LINHAS DO DATAFRAME:\n", df.head())
     time_df = df[df['time'] == nome_time]
     if len(time_df) == 0:
         raise ValueError(f"Time '{nome_time}' não encontrado no CSV.")
         
     jogadores = []
     for _, row in time_df.iterrows():
-        # Normaliza o 'over'. Um jogador com over 80 terá 1.0.
         over_normalizado = row['over'] / 80.0
         
         jogadores.append({
             "nome": row['nick'],
             "over": over_normalizado,
             "role": row['funcao'],
-            "kills": 0,
-            "deaths": 0
+            "estatisticas": {
+                "mapas": {},      # estatísticas individuais por mapa
+                "total": {"kills": 0, "deaths": 0}
+            }
         })
     return jogadores
 
-def calcular_probabilidade_vitoria(
-    over_ct: float, 
-    over_tr: float, 
-    lado_time: str, 
-    estrategia_ct: str, 
-    estrategia_tr: str,
-    mapa: str, 
-    fator_randomico: float = 0.1
-) -> float:
-    """
-    Calcula a probabilidade de vitória do time CT com base no over, lado, estratégias e fator randômico.
-    """
-    # Peso do over dos times
-    peso_over = 0.4
-    # Peso do lado do time (CT ou TR)
+
+import math
+
+def calcular_probabilidade_vitoria(over_ct, over_tr, lado_time, estrategia_ct, estrategia_tr, mapa, k=0.1):
+    peso_over = 0.3
     peso_lado = 0.3
-    # Peso das estratégias
-    peso_estrategia = 0.2
-    # Peso do fator randômico
-    peso_randomico = 0.1
+    peso_estrategia = 0.6
+    peso_randomico = 1.6
 
-    # Diferença de over entre os times
     diferenca_over = over_ct - over_tr
-
-    # Vantagem do lado (CT ou TR)
     vantagem_lado = 1 if lado_time == "ct" else -1
-
-    # Resultado das estratégias
     resultado_estrategia = estrategia_resultado(estrategia_ct, estrategia_tr, mapa)
     vantagem_estrategia = 1 if resultado_estrategia == "ct" else -1
 
-    # Cálculo da probabilidade
-    probabilidade = (
+    score = (
         (peso_over * diferenca_over) +
         (peso_lado * vantagem_lado) +
         (peso_estrategia * vantagem_estrategia) +
         (peso_randomico * random.uniform(-1, 1))
     )
 
-    # Normaliza a probabilidade para um valor entre 0 e 1
-    probabilidade = (probabilidade + 1) / 2
+    # Função sigmoide para limitar extremos
+    probabilidade = 1 / (1 + math.exp(-k * score))
     return probabilidade
+
+
+def resetar_estatisticas_para_mapa(jogadores: List[Dict[str, Any]], mapa: str):
+    for j in jogadores:
+        j["estatisticas"]["mapas"][mapa] = {"kills": 0, "deaths": 0}
 
 def decidir_vencedor_round(
     over_ct: float, 
@@ -448,3 +441,163 @@ def decidir_vencedor_round(
         return "ct"
     else:
         return "tr"
+    
+# dicionário de times carregados do CSV
+def carregar_times_config(caminho_csv="times.csv"):
+    config = {}
+    with open(caminho_csv, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            cor = getattr(Fore, row["cor"].upper(), "")
+            config[row["nome"]] = {
+                "emoji": row["emoji"],
+                "cor": cor
+            }
+    return config
+
+def mostrar_estatisticas_por_mapa(jogadores_time1, jogadores_time2, mapa, nome_time1, nome_time2, config):
+    print(f"\n📊 Estatísticas no mapa {mapa}:")
+
+    for nome_time, jogadores in [(nome_time1, jogadores_time1), (nome_time2, jogadores_time2)]:
+        cfg = config.get(nome_time, {"emoji": "", "cor": ""})
+        cor, emoji = cfg["cor"], cfg["emoji"]
+
+        print(f"\n➡️ {cor}{emoji} {nome_time}{Style.RESET_ALL}")
+        for p in sorted(jogadores, key=lambda x: x["estatisticas"]["mapas"][mapa]["kills"], reverse=True):
+            k = p["estatisticas"]["mapas"][mapa]["kills"]
+            d = p["estatisticas"]["mapas"][mapa]["deaths"]
+            diff = k - d
+            print(f" - {p['nome']:<12} | "
+                  f"K: {cor}{k:<3}{Style.RESET_ALL} "
+                  f"D: {d:<3} | "
+                  f"+/-: {diff:<3} | "
+                  f"Role: {p['role']}")
+
+
+def mostrar_estatisticas_finais(jogadores_time1, jogadores_time2, nome_time1, nome_time2, config):
+    print("\n📊 Estatísticas finais acumuladas:")
+
+    for nome_time, jogadores in [(nome_time1, jogadores_time1), (nome_time2, jogadores_time2)]:
+        cfg = config.get(nome_time, {"emoji": "", "cor": ""})
+        cor, emoji = cfg["cor"], cfg["emoji"]
+
+        print(f"\n➡️ {cor}{emoji} {nome_time} (Totais){Style.RESET_ALL}")
+        for p in sorted(jogadores, key=lambda x: x["estatisticas"]["total"]["kills"], reverse=True):
+            k = p["estatisticas"]["total"]["kills"]
+            d = p["estatisticas"]["total"]["deaths"]
+            diff = k - d
+            print(f" - {p['nome']:<12} | "
+                  f"K: {cor}{k:<3}{Style.RESET_ALL} "
+                  f"D: {d:<3} | "
+                  f"+/-: {diff:<3} | "
+                  f"Role: {p['role']}")
+
+    # Resumo por mapa
+    print("\n📌 Estatísticas por mapa:")
+    mapas = list(jogadores_time1[0]["estatisticas"]["mapas"].keys())
+
+    for mapa in mapas:
+        print(f"\nMapa {mapa}:")
+        for nome_time, jogadores in [(nome_time1, jogadores_time1), (nome_time2, jogadores_time2)]:
+            cfg = config.get(nome_time, {"emoji": "", "cor": ""})
+            cor, emoji = cfg["cor"], cfg["emoji"]
+
+            print(f"\n➡️ {cor}{emoji} {nome_time}{Style.RESET_ALL}")
+            for p in sorted(jogadores, key=lambda x: x["estatisticas"]["mapas"][mapa]["kills"], reverse=True):
+                k = p["estatisticas"]["mapas"][mapa]["kills"]
+                d = p["estatisticas"]["mapas"][mapa]["deaths"]
+                print(f" - {p['nome']:<12} | "
+                      f"K: {cor}{k:<3}{Style.RESET_ALL} "
+                      f"D: {d:<3}")
+
+
+from collections import defaultdict
+import pandas as pd
+
+from collections import defaultdict
+import pandas as pd
+
+def simular_partidas_em_lote_auto(time1: str, time2: str, n: int = 100, modo: ModoJogo = "auto"):
+    """
+    Simula N partidas entre dois times, escolhendo mapas automaticamente,
+    e retorna K/D acumulado dos jogadores ao longo de todas as partidas.
+    """
+    resultados_partidas = []
+    
+    # Estatísticas agregadas globais
+    kills_agg = defaultdict(list)
+    deaths_agg = defaultdict(list)
+    times_jogador = {}  # salvar qual time cada jogador pertence
+    vitorias = {time1: 0, time2: 0}
+
+    for i in range(n):
+        print(f"\n=== Simulação {i+1}/{n} ===")
+        
+        # Escolhe mapas aleatoriamente (pode ser 3 mapas por partida)
+        mapas_disponiveis = list(estrategias_por_mapa.keys())
+        mapas_escolhidos = random.sample(mapas_disponiveis, min(3, len(mapas_disponiveis)))
+        
+        # Carrega jogadores
+        df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+        jogadores_time1 = obter_jogadores(time1, df_jogadores)
+        jogadores_time2 = obter_jogadores(time2, df_jogadores)
+        
+        # salvar times
+        for j in jogadores_time1:
+            times_jogador[j["nome"]] = time1
+        for j in jogadores_time2:
+            times_jogador[j["nome"]] = time2
+        
+        resultado = ResultadoPartida(
+            partida_id=ContadorPartidas.proxima_partida(),
+            mapas=[]
+        )
+        
+        for mapa in mapas_escolhidos:
+            resultado_mapa = jogar_mapa(time1, time2, mapa, modo, jogadores_time1, jogadores_time2)
+            resultado.mapas.append(resultado_mapa)
+
+            # Agrega kills e deaths globais
+            for jogador in jogadores_time1 + jogadores_time2:
+                kills_agg[jogador["nome"]].append(jogador["estatisticas"]["mapas"][mapa]["kills"])
+                deaths_agg[jogador["nome"]].append(jogador["estatisticas"]["mapas"][mapa]["deaths"])
+
+        # Determina vencedor da partida
+        vitorias_time1 = sum(1 for m in resultado.mapas if m.placar_time1 > m.placar_time2)
+        vitorias_time2 = sum(1 for m in resultado.mapas if m.placar_time2 > m.placar_time1)
+        vencedor = time1 if vitorias_time1 > vitorias_time2 else time2
+        vitorias[vencedor] += 1
+        
+        resultados_partidas.append(resultado)
+    
+    # Calcula médias globais por jogador
+    kd_geral = {}
+    for jogador in kills_agg.keys():
+        total_kills = sum(kills_agg[jogador])
+        total_deaths = sum(deaths_agg[jogador])
+        kd_geral[jogador] = {
+            "Time": times_jogador[jogador],
+            "Kills": round(total_kills / n, 2),
+            "Deaths": round(total_deaths / n, 2),
+            "K/D": round((total_kills / total_deaths) if total_deaths != 0 else float('inf'), 2)
+        }
+
+    # Converte em DataFrame para mostrar tabela organizada
+    kd_df = pd.DataFrame(kd_geral).T
+    kd_df = kd_df.sort_values(by=["Time", "K/D"], ascending=[True, False])
+
+    # Exibe resumo
+    print("\n=== RESUMO DA SIMULAÇÃO ===")
+    print(f"Total de partidas simuladas: {n}")
+    print(f"Vitórias: {time1}: {vitorias[time1]}, {time2}: {vitorias[time2]}\n")
+    
+    print("\n📊 Média de K/D acumulado por jogador:")
+    print(kd_df)
+
+    return resultados_partidas, vitorias, kd_df
+
+
+
+
+# Exemplo de uso:
+#resultados, vitorias, kills_media, deaths_media = simular_partidas_em_lote("FURIA", "MIBR", n=100)

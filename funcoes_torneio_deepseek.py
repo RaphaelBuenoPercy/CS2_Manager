@@ -324,7 +324,8 @@ def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
 
 def salvar_resultados_csv(nome_torneio: str, resultados: List[Dict]) -> None:
     """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa."""
-    resultados_dict = [resultado.to_dict() for resultado in resultados]
+    resultados_dict = [resultado for resultado in resultados]
+
 
     try:
         linhas_csv = []

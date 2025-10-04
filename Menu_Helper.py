@@ -2,7 +2,7 @@ import random
 import pandas as pd
 from funcoes_torneio_deepseek import criar_torneio
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
-from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto
+from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote
 
 # ==================== FUNÇÕES AUXILIARES ====================
 def mostrar_titulo(texto: str):
@@ -101,9 +101,10 @@ def menu_torneio():
         mostrar_titulo("torneios")
         print("1. Criar novo torneio")
         print("2. Listar torneios anteriores")
-        print("3. Voltar ao menu principal")
+        print("3. Simular torneios")
+        print("4. Voltar ao menu principal")
         
-        escolha = obter_opcao_numerica(1, 3)
+        escolha = obter_opcao_numerica(1, 4)
         
         if escolha == 1:
             criar_torneio(times)
@@ -111,7 +112,61 @@ def menu_torneio():
             # Implementar listagem de torneios
             print("Funcionalidade em desenvolvimento!")
         elif escolha == 3:
+            menu_simular_torneio()
             return
+
+def menu_simular_torneio():
+    if len(times) < 4:
+        print("Necessário pelo menos 4 times registrados!")
+        return
+
+    listar_times()
+    print("\n=== SIMULAÇÃO DE TORNEIO MATA-MATA ===")
+    print("Escolha 4 ou 8 times para o torneio.")
+    
+    while True:
+        try:
+            qtd = int(input("Quantos times deseja incluir (4 ou 8)? ").strip())
+            if qtd in (4, 8):
+                break
+            else:
+                print("Digite apenas 4 ou 8.")
+        except ValueError:
+            print("Entrada inválida, tente novamente.")
+
+    print("\nDigite o nome exato dos times que participarão:")
+    times_escolhidos = []
+    for i in range(qtd):
+        while True:
+            nome = input(f"Time {i+1}: ").strip()
+            if nome in times and nome not in times_escolhidos:
+                times_escolhidos.append(nome)
+                break
+            elif nome in times_escolhidos:
+                print("Esse time já foi escolhido!")
+            else:
+                print("Time não encontrado. Tente novamente.")
+
+    print(f"\nTimes escolhidos: {', '.join(times_escolhidos)}")
+    n = input("Quantos torneios você quer simular? ")
+    print(f"\nSimulando {n} torneios automáticos...\n")
+
+    resultados = simular_torneios_em_lote(times_escolhidos, simular_partidas_em_lote_auto, n=50)
+
+    print("=== ESTATÍSTICAS GERAIS APÓS", n, "TORNEIOS ===")
+    print(f"{'Time':<12} | {'Campeão':<8} | {'Vice':<8} | {'Top4':<8} | {'Posição Média':<15} | {'Vitórias Médias':<16} | {'Vitórias':<10} | {'Derrotas':<10}")
+    print("-" * 110)
+
+    for time, dados in sorted(resultados.items(), key=lambda x: x[1]['posicao_media']):
+        
+        print(f"{time:<12} | "
+        f"{dados['campeao']:<8} | "
+        f"{dados['vice']:<8} | "
+        f"{dados['top4']:<8} | "
+        f"{dados['posicao_media']:<15.2f} | "
+        f"{dados['vitorias_media']:<16.2f} | "
+        f"{dados['vitorias_total']:<10} | "
+        f"{dados['derrotas_total']:<10}")
 
 def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
     """

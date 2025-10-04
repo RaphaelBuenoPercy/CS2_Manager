@@ -596,8 +596,143 @@ def simular_partidas_em_lote_auto(time1: str, time2: str, n: int = 100, modo: Mo
 
     return resultados_partidas, vitorias, kd_df
 
+# Mesma função, adaptada para um jogo apenas
+def simular_partida_auto(time1: str, time2: str, n: int = 100, modo: ModoJogo = "auto"):
+    """
+    Simula 1 partida entre dois times, escolhendo mapas automaticamente,
+    e retorna o vencedor e o perdedor.
+    """
+
+    vitorias = {time1: 0, time2: 0}
+        
+    # Escolhe mapas aleatoriamente (pode ser 3 mapas por partida)
+    mapas_disponiveis = list(estrategias_por_mapa.keys())
+    mapas_escolhidos = random.sample(mapas_disponiveis, min(3, len(mapas_disponiveis)))
+        
+    df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+    jogadores_time1 = obter_jogadores(time1, df_jogadores)
+    jogadores_time2 = obter_jogadores(time2, df_jogadores)
+    
+    resultado = ResultadoPartida(
+        partida_id=ContadorPartidas.proxima_partida(),
+        mapas=[]
+    )
+        
+    for mapa in mapas_escolhidos:
+        resultado_mapa = jogar_mapa(time1, time2, mapa, modo, jogadores_time1, jogadores_time2)
+        resultado.mapas.append(resultado_mapa)
+        if sum(1 for m in resultado.mapas if m.placar_time1 > m.placar_time2) == 2 or sum(1 for m in resultado.mapas if m.placar_time2 > m.placar_time1) == 2:
+            break
+
+    # Determina vencedor da partida
+    vitorias_time1 = sum(1 for m in resultado.mapas if m.placar_time1 > m.placar_time2)
+    vitorias_time2 = sum(1 for m in resultado.mapas if m.placar_time2 > m.placar_time1)
+    
+    if vitorias_time1 > vitorias_time2:
+        vencedor = time1
+        perdedor = time2
+    else:
+        vencedor = time2
+        perdedor = time1
+    
+    # Exibe resumo
+    print("\n=== PARTIDA ===")
+    print(f"{time1}: {vitorias_time1}, {time2}: {vitorias_time2}\n")
+
+
+    return vencedor, perdedor
+
 
 
 
 # Exemplo de uso:
-#resultados, vitorias, kills_media, deaths_media = simular_partidas_em_lote("FURIA", "MIBR", n=100)
+# resultados, vitorias, kills_media, deaths_media = simular_partidas_em_lote("FURIA", "MIBR", n=100)
+
+import random
+from collections import defaultdict
+
+def simular_torneio_mata_mata(times, simular_partidas_em_lote_auto):
+    """
+    Simula um torneio mata-mata com 4 ou 8 times.
+    Retorna um ranking final e as vitórias por time.
+    """
+    if len(times) not in (4, 8):
+        raise ValueError("O torneio deve ter 4 ou 8 times.")
+    
+    random.shuffle(times)
+    vitorias = defaultdict(int)
+    derrotas = defaultdict(int)
+    eliminados = []
+    rodada = times[:]
+    
+    # Fases do torneio
+    while len(rodada) > 1:
+        nova_rodada = []
+        for i in range(0, len(rodada), 2):
+            time_a = rodada[i]
+            time_b = rodada[i+1]
+            vencedor, perdedor = simular_partida_auto(time_a, time_b, 1)
+            vitorias[vencedor] += 1
+            derrotas[perdedor] += 1
+            eliminados.append(perdedor)
+            nova_rodada.append(vencedor)
+        rodada = nova_rodada
+
+    # Adiciona o campeão no ranking
+    campeao = rodada[0]
+    eliminados.append(campeao)
+    
+    # Ranking invertido (1º no fim, últimos no início)
+    ranking = list(reversed(eliminados))
+    return ranking, vitorias, derrotas
+
+
+def simular_torneios_em_lote(times, simular_partidas_em_lote_auto, n=50):
+    """
+    Simula múltiplos torneios e coleta estatísticas de desempenho:
+    campeão, vice, top4, posição média, vitórias médias, totais etc.
+    """
+    estatisticas = {
+        time: {
+            "campeao": 0,
+            "vice": 0,
+            "top4": 0,
+            "posicoes": [],
+            "vitorias_total": 0,
+            "derrotas_total": 0
+        }
+        for time in times
+    }
+
+    for _ in range(n):
+        ranking, vitorias, derrotas = simular_torneio_mata_mata(times[:], simular_partidas_em_lote_auto)
+
+        # Atualiza estatísticas por posição
+        for pos, time in enumerate(ranking, start=1):
+            estatisticas[time]["posicoes"].append(pos)
+            estatisticas[time]["vitorias_total"] += vitorias.get(time, 0)
+            estatisticas[time]["derrotas_total"] += derrotas.get(time, 0)
+
+            # Classificação detalhada por fase
+            if pos == 1:
+                estatisticas[time]["campeao"] += 1
+            elif pos == 2:
+                estatisticas[time]["vice"] += 1
+            elif pos in (3, 4):
+                estatisticas[time]["top4"] += 1
+
+    # Cálculo de médias
+    for time in estatisticas:
+        posicoes = estatisticas[time]["posicoes"]
+        estatisticas[time]["posicao_media"] = sum(posicoes) / len(posicoes)
+        estatisticas[time]["vitorias_media"] = estatisticas[time]["vitorias_total"] / n
+        estatisticas[time]["vitorias"] = estatisticas[time]["vitorias_total"]
+        estatisticas[time]["derrotas"] = estatisticas[time]["derrotas_total"]
+
+    return estatisticas
+
+# ======== EXEMPLO DE USO ========
+
+# Exemplo de uso:
+# simular_torneios_em_lote(times: List[str], n_torneios: int = 50)
+

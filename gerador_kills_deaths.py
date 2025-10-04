@@ -9,16 +9,16 @@ from typing import List, Dict, Any, Tuple
 # Pesos para as funções (roles) - Mantido como antes
 ROLE_WEIGHTS = {
     'kill': {
-        'Entry': 1.3,
-        'AWP': 1.4,
-        'Ponta': 1.1,
-        'Rifler': 1.2,
-    },
-    'death': {
-        'Entry': 1.5,
+        'Entry': 1.1,
         'AWP': 1.0,
         'Ponta': 0.9,
-        'Rifler': 1.1,
+        'Rifler': 1.0,
+    },
+    'death': {
+        'Entry': 1.1,
+        'AWP': 0.9,
+        'Ponta': 0.9,
+        'Rifler': 1.0,
     }
 }
 
@@ -87,23 +87,30 @@ def simular_kills_do_round(time_vencedor: str, jogadores_ct: List[Dict], jogador
     pesos_death_vencedores = [p['over']**0.8 * ROLE_WEIGHTS['death'].get(p['role'], 1.0) + 0.2 for p in vencedores]
 
 
-    # Vencedor mata perdedor
+ # Vencedor mata perdedor
     if kills_vencedor > 0 and sum(pesos_death_perdedores) > 0:
-        mortos = random.sample(perdedores, k=min(kills_vencedor, len(perdedores)))
+        mortos = random.choices(
+            perdedores,
+            weights=pesos_death_perdedores,
+            k=min(kills_vencedor, len(perdedores))
+        )
         for morto in mortos:
             registrar_death(morto, mapa)
-            # cada morte gera uma kill correspondente
             killer = random.choices(vencedores, weights=pesos_kill_vencedores, k=1)[0]
             registrar_kill(killer, mapa)
 
     # Perdedor mata vencedor
     if kills_perdedor > 0 and sum(pesos_death_vencedores) > 0:
-        mortos = random.sample(vencedores, k=min(kills_perdedor, len(vencedores)))
+        mortos = random.choices(
+            vencedores,
+            weights=pesos_death_vencedores,
+            k=min(kills_perdedor, len(vencedores))
+        )
         for morto in mortos:
             registrar_death(morto, mapa)
-            # cada morte gera uma kill correspondente
             killer = random.choices(perdedores, weights=pesos_kill_perdedores, k=1)[0]
             registrar_kill(killer, mapa)
+
 
 
 

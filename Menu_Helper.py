@@ -30,7 +30,9 @@ def confirmar_acao(mensagem: str) -> bool:
 # ==================== SUBMENUS ====================
 def menu_gerenciar_times():
     """Submenu para gestão de times"""
+    
     while True:
+
         mostrar_titulo("gestão de times")
         print("1. Adicionar time")
         print("2. Remover time")
@@ -44,6 +46,7 @@ def menu_gerenciar_times():
         if escolha == 1:
             nome = input("Nome do novo time: ").strip()
             adicionar_time(nome)
+
         elif escolha == 2:
             listar_times()
             if times:
@@ -55,13 +58,20 @@ def menu_gerenciar_times():
                             print(f"Time {removed} removido!")
                 except ValueError:
                     print("Número inválido!")
+
         elif escolha == 3:
             listar_times()
+
         elif escolha == 4:
             calcular_overs_medios_times()
             exibir_overs_medios_times()
+
         elif escolha == 5:
-            resultados_partidas, vitorias, kd_df = simular_partidas_em_lote_auto("Furia", "Liquid", n=200)
+            time1 = input("Escolha o primeiro time: ")
+            time2 = input("Escolha o segundo time: ")
+            qtd = input("Escolha o número de vezes que você quer simular")
+            simular_partidas_em_lote_auto(time1, time2, qtd)
+
         elif escolha == 6:
             return
 

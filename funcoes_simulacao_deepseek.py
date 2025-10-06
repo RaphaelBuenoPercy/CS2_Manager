@@ -408,7 +408,7 @@ def calcular_probabilidade_vitoria(over_ct, over_tr, lado_time, estrategia_ct, e
     peso_over = 0.3
     peso_lado = 0.3
     peso_estrategia = 0.6
-    peso_randomico = 1.6
+    peso_randomico = 1.2
 
     diferenca_over = over_ct - over_tr
     vantagem_lado = 1 if lado_time == "ct" else -1

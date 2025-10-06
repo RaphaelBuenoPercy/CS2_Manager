@@ -1,8 +1,8 @@
 import random
 import pandas as pd
-from funcoes_torneio_deepseek import criar_torneio
+from funcoes_torneio_deepseek import criar_torneio, mostrar_resumo_torneio, salvar_estatisticas_torneio, mostrar_historico_partidas 
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
-from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote
+from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote, simular_partida_auto
 
 # ==================== FUNÇÕES AUXILIARES ====================
 def mostrar_titulo(texto: str):
@@ -136,11 +136,11 @@ def menu_simular_torneio():
     
     while True:
         try:
-            qtd = int(input("Quantos times deseja incluir (4 ou 8)? ").strip())
-            if qtd in (4, 8):
+            qtd = int(input("Quantos times deseja incluir (4, 8, 16)? ").strip())
+            if qtd in (4, 8, 16):
                 break
             else:
-                print("Digite apenas 4 ou 8.")
+                print("Digite apenas 4, 8 ou 16.")
         except ValueError:
             print("Entrada inválida, tente novamente.")
 
@@ -158,16 +158,24 @@ def menu_simular_torneio():
                 print("Time não encontrado. Tente novamente.")
 
     print(f"\nTimes escolhidos: {', '.join(times_escolhidos)}")
-    n = input("Quantos torneios você quer simular? ")
+
+    n = int(input("Quantos torneios você quer simular? "))
+    nome_torneio = input("Qual o nome do torneio?: ")
+
     print(f"\nSimulando {n} torneios automáticos...\n")
 
-    resultados = simular_torneios_em_lote(times_escolhidos, simular_partidas_em_lote_auto, n=50)
+    resultados = simular_torneios_em_lote(times_escolhidos, simular_partida_auto, n)
 
-    print("=== ESTATÍSTICAS GERAIS APÓS", n, "TORNEIOS ===")
+    df, df_total = salvar_estatisticas_torneio(resultados["partidas"], resultados["ranking"], nome_torneio)
+    
+    mostrar_historico_partidas(resultados["partidas"])
+    mostrar_resumo_torneio(df, df_total)
+
+    print("\n=== ESTATÍSTICAS GERAIS APÓS", n, "TORNEIOS ===")
     print(f"{'Time':<12} | {'Campeão':<8} | {'Vice':<8} | {'Top4':<8} | {'Posição Média':<15} | {'Vitórias Médias':<16} | {'Vitórias':<10} | {'Derrotas':<10}")
     print("-" * 110)
 
-    for time, dados in sorted(resultados.items(), key=lambda x: x[1]['posicao_media']):
+    for time, dados in sorted(resultados["estatisticas"].items(), key=lambda x: x[1]['posicao_media']):
         
         print(f"{time:<12} | "
         f"{dados['campeao']:<8} | "

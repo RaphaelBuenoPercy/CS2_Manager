@@ -11,13 +11,13 @@ ROLE_WEIGHTS = {
     'kill': {
         'Entry': 1.1,
         'AWP': 1.0,
-        'Ponta': 0.9,
+        'Ponta': 1.0,
         'Rifler': 1.0,
     },
     'death': {
         'Entry': 1.1,
-        'AWP': 0.9,
-        'Ponta': 0.9,
+        'AWP': 1.0,
+        'Ponta': 1.0,
         'Rifler': 1.0,
     }
 }
@@ -79,17 +79,21 @@ def simular_kills_do_round(time_vencedor: str, jogadores_ct: List[Dict], jogador
     if not isinstance(vencedores, list):
         raise TypeError(f"Esperava lista de jogadores, mas recebeu: {type(vencedores)} {vencedores}")
     
-    pesos_kill_vencedores = [p['over']**0.8 * ROLE_WEIGHTS['kill'].get(p['role'], 1.0) + 0.2 for p in vencedores]
-    pesos_death_perdedores = [p['over']**0.8 * ROLE_WEIGHTS['death'].get(p['role'], 1.0) + 0.2 for p in perdedores]
+    # Aumenta o peso do over de forma significativa, mas controlada
+    expoente_over = 2.8   # aumenta a diferença de skill
+    multiplicador = 2.2   # amplifica ainda mais
 
+    pesos_kill_vencedores = [(p['over'] ** expoente_over) * ROLE_WEIGHTS['kill'].get(p['role'], 1.0) * multiplicador + 0.1 for p in vencedores]
+    pesos_death_perdedores = [(p['over'] ** expoente_over) * ROLE_WEIGHTS['death'].get(p['role'], 1.0) * multiplicador + 0.1 for p in perdedores]
 
-    pesos_kill_perdedores = [p['over']**0.8 * ROLE_WEIGHTS['kill'].get(p['role'], 1.0) + 0.2 for p in perdedores]
-    pesos_death_vencedores = [p['over']**0.8 * ROLE_WEIGHTS['death'].get(p['role'], 1.0) + 0.2 for p in vencedores]
+    pesos_kill_perdedores = [(p['over'] ** expoente_over) * ROLE_WEIGHTS['kill'].get(p['role'], 1.0) * multiplicador + 0.1 for p in perdedores]
+    pesos_death_vencedores = [(p['over'] ** expoente_over) * ROLE_WEIGHTS['death'].get(p['role'], 1.0) * multiplicador + 0.1 for p in vencedores]
+
 
 
  # Vencedor mata perdedor
     if kills_vencedor > 0 and sum(pesos_death_perdedores) > 0:
-        mortos = random.choices(
+        mortos = sorteio_sem_repeticao_com_pesos(
             perdedores,
             weights=pesos_death_perdedores,
             k=min(kills_vencedor, len(perdedores))
@@ -101,7 +105,7 @@ def simular_kills_do_round(time_vencedor: str, jogadores_ct: List[Dict], jogador
 
     # Perdedor mata vencedor
     if kills_perdedor > 0 and sum(pesos_death_vencedores) > 0:
-        mortos = random.choices(
+        mortos = sorteio_sem_repeticao_com_pesos(
             vencedores,
             weights=pesos_death_vencedores,
             k=min(kills_perdedor, len(vencedores))
@@ -112,6 +116,25 @@ def simular_kills_do_round(time_vencedor: str, jogadores_ct: List[Dict], jogador
             registrar_kill(killer, mapa)
 
 
+
+def sorteio_sem_repeticao_com_pesos(populacao, weights, k):
+    assert len(populacao) == len(weights)
+    populacao = populacao[:]
+    weights = weights[:]
+    selected = []
+    for _ in range(k):
+        if not populacao:
+            break
+        total = sum(weights)
+        r = random.uniform(0, total)
+        upto = 0
+        for i, w in enumerate(weights):
+            if upto + w >= r:
+                selected.append(populacao.pop(i))
+                weights.pop(i)
+                break
+            upto += w
+    return selected
 
 
 def registrar_kill(jogador, mapa):

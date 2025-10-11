@@ -1,25 +1,25 @@
 nick,nacionalidade,funcao,over,time
-Molodoy,BR,AWP,88,Furia
+Molodoy,KZ,AWP,88,Furia
 Kscerato,BR,Ponta,88,Furia
 Yuurih,BR,Ponta,85,Furia
-Yekindar,BR,Entry,83,Furia
+Yekindar,LV,Entry,83,Furia
 Fallen,BR,Rifler,80,Furia
 Nqz,BR,AWP,87,Pain
 Biguzera,BR,Rifler,81,Pain
 Snow,BR,Ponta,83,Pain
-David,BR,Ponta,82,Pain
-Dgt,BR,Entry,81,Pain
-Kl1m,BR,AWP,83,Mibr
-Qikert,BR,Ponta,76,Mibr
+David,CL,Ponta,82,Pain
+Dgt,UY,Entry,81,Pain
+Kl1m,RU,AWP,83,Mibr
+Qikert,KZ,Ponta,76,Mibr
 Exit,BR,Ponta,83,Mibr
 Insani,BR,Entry,88,Mibr
 Brnz4n,BR,Rifler,80,Mibr
-Maxxkor,BR,AWP,81,Sharks
+Maxxkor,AR,AWP,81,Sharks
 rdnzao,BR,Ponta,74,Sharks
 Gafolo,BR,Ponta,77,Sharks
 Doc,BR,Entry,82,Sharks
 Koala,BR,Rifler,79,Sharks
-Try,BR,AWP,84,Imperial
+Try,AR,AWP,84,Imperial
 Skullz,BR,Ponta,81,Imperial
 Noway,BR,Ponta,80,Imperial
 Chelo,BR,Entry,80,Imperial
@@ -35,10 +35,10 @@ Dumau,BR,Ponta,85,Legacy
 n1ssim,BR,Entry,76,Legacy
 Latto,BR,Rifler,84,Legacy
 Cass1n,BR,AWP,74,Bestia
-Noktse,BR,Ponta,72,Bestia
-Tomaszin,BR,Ponta,80,Bestia
-Timo,BR,Entry,75,Bestia
-Luchov,BR,Rifler,75,Bestia
+Noktse,AR,Ponta,72,Bestia
+Tomaszin,UY,Ponta,80,Bestia
+Timo,UY,Entry,75,Bestia
+Luchov,AR,Rifler,75,Bestia
 History,BR,AWP,78,Red Canids
 Chay,BR,Ponta,72,Red Canids
 Venomzera,BR,Ponta,81,Red Canids
@@ -55,162 +55,162 @@ Tomate,BR,Ponta,80,Galorys
 Destiny,BR,Entry,73,Galorys
 Gbb,BR,Rifler,79,Galorys
 Levi,BR,AWP,77,9z
-Luken,BR,Ponta,81,9z
+Luken,AR,Ponta,81,9z
 Urbano,BR,Ponta,75,9z
-Max,BR,Entry,79,9z
-Huasopeek,BR,Rifler,76,9z
-Ultimate,BR,AWP,81,Liquid
-Siuhy,BR,Ponta,76,Liquid
-Naf,BR,Ponta,77,Liquid
-Nertz,BR,Entry,83,Liquid
-Twistzz,BR,Rifler,83,Liquid
-Slaxz,BR,AWP,80,M80
-s1n,BR,Ponta,77,M80
-Hext,BR,Ponta,73,M80
-Lake,BR,Entry,78,M80
-Swisher,BR,Rifler,75,M80
-Hallzerk,BR,AWP,79,Passion UA
-Kvem,BR,Ponta,81,Passion UA
-Nicx,BR,Ponta,72,Passion UA
-Grim,BR,Entry,74,Passion UA
-JT,BR,Rifler,77,Passion UA
-Xotic,BR,AWP,73,NRG
-Sonic,BR,Ponta,74,NRG
-brO,BR,Ponta,79,NRG
-Jeorge,BR,Entry,76,NRG
-Nitro,BR,Rifler,78,NRG
-phzy,BR,AWP,78,Wildcard
-Peeping,BR,Ponta,73,Wildcard
-F1ku,BR,Ponta,77,Wildcard
-Stanislaw,BR,Entry,73,Wildcard
-Jba,BR,Rifler,84,Wildcard
-Shiro,BR,AWP,87,Spirit
-Zweih,BR,Ponta,81,Spirit
-Tn1r,BR,Ponta,83,Spirit
-Donk,BR,Entry,95,Spirit
-Chopper,BR,Rifler,75,Spirit
-Zywoo,BR,AWP,94,Vitality
-Ropz,BR,Ponta,92,Vitality
-Mezzi,BR,Ponta,83,Vitality
-Apex,BR,Entry,74,Vitality
-Flamez,BR,Rifler,86,Vitality
-Sunpayus,BR,AWP,77,G2
-Hunter,BR,Ponta,82,G2
-Matys,BR,Ponta,82,G2
-Malbs,BR,Entry,84,G2
-Heavygod,BR,Rifler,90,G2
-Wonderful,BR,AWP,80,Navi
-iM,BR,Ponta,86,Navi
-Aleksib,BR,Ponta,77,Navi
-Makkaze,BR,Entry,84,Navi
-Bit,BR,Rifler,86,Navi
-Broky,BR,AWP,84,Faze
-Rain,BR,Ponta,83,Faze
-Frozen,BR,Ponta,87,Faze
-Jcobbb,BR,Entry,80,Faze
-Karrigan,BR,Rifler,78,Faze
-Woxic,BR,AWP,80,Aurora
-Jottaaa,BR,Ponta,79,Aurora
-Wicadia,BR,Ponta,85,Aurora
-Xantares,BR,Entry,92,Aurora
-Maj3r,BR,Rifler,79,Aurora
-Monesy,BR,AWP,87,Falcons
-Kyousuke,BR,Ponta,83,Falcons
-Kxysan,BR,Ponta,78,Falcons
-Niko,BR,Entry,87,Falcons
-Teses,BR,Rifler,81,Falcons
-Torszi,BR,AWP,86,Mouz
-Spinx,BR,Ponta,82,Mouz
-Jimmphat,BR,Ponta,86,Mouz
-Brollan,BR,Entry,81,Mouz
-Xertion,BR,Rifler,85,Mouz
-Icy,BR,AWP,80,VP
-Perfecto,BR,Ponta,84,VP
-Flit,BR,Ponta,85,VP
-to0ro,BR,Entry,79,VP
-Fame,BR,Rifler,85,VP
-hypex,BR,AWP,75,GL
-PR,BR,Ponta,81,GL
-Ztr,BR,Ponta,78,GL
-Rez,BR,Entry,83,GL
-Tauson,BR,Rifler,83,GL
-Maka,BR,AWP,84,3DMax
-Lucky,BR,Ponta,78,3DMax
-Graviti,BR,Ponta,79,3DMax
-Bodyy,BR,Entry,85,3DMax
-Ex3rcise,BR,Rifler,80,3DMax
-Device,BR,AWP,87,Astralis
-Hooxi,BR,Ponta,77,Astralis
-Jabbi,BR,Ponta,85,Astralis
-Staehr,BR,Entry,77,Astralis
-Stavn,BR,Rifler,84,Astralis
-Hyped,BR,AWP,72,Big
-Tabsen,BR,Ponta,76,Big
-Krimbo,BR,Ponta,80,Big
-JDC,BR,Entry,82,Big
-prosus,BR,Rifler,73,Big
-Alkaren,BR,AWP,76,Heroic
-LNZ,BR,Ponta,77,Heroic
-yxngstxr,BR,Ponta,77,Heroic
-xFloud,BR,Entry,81,Heroic
-nilo,BR,Rifler,78,Heroic
-Artfrost,BR,AWP,77,Betboom
-d1Ledez,BR,Ponta,75,Betboom
-Boombl4,BR,Ponta,75,Betboom
-Magnojez,BR,Entry,84,Betboom
-Siren,BR,Rifler,76,Betboom
-Jambo,BR,AWP,77,Fnatic
-Krimz,BR,Ponta,75,Fnatic
-Fear,BR,Ponta,78,Fnatic
-Cypher,BR,Entry,73,Fnatic
-Blamef,BR,Rifler,79,Fnatic
-Ana,BR,AWP,79,Imperial FE
-WieenN,BR,Ponta,74,Imperial FE
-Kat,BR,Ponta,76,Imperial FE
-Tory,BR,Entry,74,Imperial FE
-Twenty3,BR,Rifler,79,Imperial FE
-Podi,BR,AWP,73,Ence
-Neityu,BR,Ponta,76,Ence
-sdy,BR,Ponta,79,Ence
-myLitsi,BR,Entry,70,Ence
-rigon,BR,Rifler,72,Ence
-Story,BR,AWP,81,Saw
-Ag1l,BR,Ponta,77,Saw
-aragornN,BR,Ponta,75,Saw
-krazy,BR,Entry,77,Saw
-Mutiris,BR,Rifler,80,Saw
-r1nkle,BR,AWP,74,Nip
-Snappi,BR,Ponta,73,Nip
-Sjuush,BR,Ponta,77,Nip
-Ewjerkz,BR,Entry,77,Nip
-xKacpersky,BR,Rifler,72,Nip
-910,BR,AWP,87,Mongolz
-mzinho,BR,Ponta,84,Mongolz
-Blitz,BR,Ponta,85,Mongolz
-Techno,BR,Entry,83,Mongolz
-Senzu,BR,Rifler,87,Mongolz
-Regali,BR,AWP,81,FlyQuest
-INS,BR,Ponta,73,FlyQuest
-Jks,BR,Ponta,81,FlyQuest
-nettik,BR,Entry,76,FlyQuest
-Vexite,BR,Rifler,76,FlyQuest
-z4kr,BR,AWP,83,Lynn Vision
-EmiliaQAQ,BR,Ponta,82,Lynn Vision
-Callmesus,BR,Ponta,76,Lynn Vision
-Westmelon,BR,Entry,75,Lynn Vision
-Starry,BR,Rifler,80,Lynn Vision
-Kaze,BR,AWP,77,Rare Atom
-Summer,BR,Ponta,76,Rare Atom
-L1hang,BR,Ponta,73,Rare Atom
-Childking,BR,Entry,76,Rare Atom
-Tiger,BR,Rifler,74,Rare Atom
-Jee,BR,AWP,77,Tyloo
-Moseyuh,BR,Ponta,76,Tyloo
-Mercury,BR,Ponta,78,Tyloo
-Jamyoung,BR,Entry,83,Tyloo
-Attacker,BR,Rifler,74,Tyloo
-Controlez,BR,AWP,77,Chingis Warriors
-Roux,BR,Ponta,75,Chingis Warriors
-Ariucle,BR,Ponta,73,Chingis Warriors
-yAmi,BR,Entry,71,Chingis Warriors
-cool4st,BR,Rifler,73,Chingis Warriors
+Max,UY,Entry,79,9z
+Huasopeek,CL,Rifler,76,9z
+Ultimate,PL,AWP,81,Liquid
+Siuhy,PL,Ponta,76,Liquid
+Naf,CA,Ponta,77,Liquid
+Nertz,IL,Entry,83,Liquid
+Twistzz,CA,Rifler,83,Liquid
+Slaxz,DE,AWP,80,M80
+s1n,DE,Ponta,77,M80
+Hext,CA,Ponta,73,M80
+Lake,US,Entry,78,M80
+Swisher,US,Rifler,75,M80
+Hallzerk,NO,AWP,79,Passion UA
+Kvem,UA,Ponta,81,Passion UA
+Nicx,US,Ponta,72,Passion UA
+Grim,US,Entry,74,Passion UA
+JT,ZA,Rifler,77,Passion UA
+Xotic,US,AWP,73,NRG
+SonicZA,Ponta,74,NRG
+brO,DK,Ponta,79,NRG
+Jeorge,US,Entry,76,NRG
+Nitro,US,Rifler,78,NRG
+phzy,SE,AWP,78,Wildcard
+Peeping,SE,Ponta,73,Wildcard
+F1ku,PL,Ponta,77,Wildcard
+Stanislaw,CA,Entry,73,Wildcard
+Jba,US,Rifler,84,Wildcard
+Shiro,RU,AWP,87,Spirit
+Zweih,RU,Ponta,81,Spirit
+Tn1r,BY,Ponta,83,Spirit
+Donk,RU,Entry,95,Spirit
+Chopper,RU,Rifler,75,Spirit
+Zywoo,FR,AWP,94,Vitality
+Ropz,EE,Ponta,92,Vitality
+Mezzi,GB,Ponta,83,Vitality
+Apex,FR,Entry,74,Vitality
+Flamez,IL,Rifler,86,Vitality
+Sunpayus,ES,AWP,77,G2
+Hunter,BA,Ponta,82,G2
+Matys,SK,Ponta,82,G2
+Malbs,GT,Entry,84,G2
+Heavygod,IL,Rifler,90,G2
+Wonderful,UA,AWP,80,Navi
+iM,RO,Ponta,86,Navi
+Aleksib,FI,Ponta,77,Navi
+Makkaze,RU,Entry,84,Navi
+Bit,UA,Rifler,86,Navi
+Broky,LV,AWP,84,Faze
+Rain,NO,Ponta,83,Faze
+Frozen,SK,Ponta,87,Faze
+Jcobbb,PL,Entry,80,Faze
+Karrigan,DK,Rifler,78,Faze
+Woxic,TR,AWP,80,Aurora
+Jottaaa,TR,Ponta,79,Aurora
+Wicadia,TR,Ponta,85,Aurora
+Xantares,TR,Entry,92,Aurora
+Maj3r,TR,Rifler,79,Aurora
+Monesy,RU,AWP,87,Falcons
+Kyousuke,RU,Ponta,83,Falcons
+Kyxsan,MK,Ponta,78,Falcons
+Niko,BA,Entry,87,Falcons
+Teses,DK,Rifler,81,Falcons
+Torszi,HU,AWP,86,Mouz
+Spinx,IL,Ponta,82,Mouz
+Jimmphat,FI,Ponta,86,Mouz
+Brollan,SE,Entry,81,Mouz
+Xertion,IL,Rifler,85,Mouz
+Icy,KZ,AWP,80,VP
+Perfecto,RU,Ponta,84,VP
+Flit,RU,Ponta,85,VP
+to0ro,RU,Entry,79,VP
+Fame,RU,Rifler,85,VP
+hypex,PL,AWP,75,GL
+PR,CZ,Ponta,81,GL
+Ztr,SE,Ponta,78,GL
+Rez,SE,Entry,83,GL
+Tauson,DK,Rifler,83,GL
+Maka,FR,AWP,84,3DMax
+Lucky,FR,Ponta,78,3DMax
+Graviti,FR,Ponta,79,3DMax
+Bodyy,FR,Entry,85,3DMax
+Ex3rcise,FR,Rifler,80,3DMax
+Device,DK,AWP,87,Astralis
+Hooxi,DK,Ponta,77,Astralis
+Jabbi,DK,Ponta,85,Astralis
+Staehr,DK,Entry,77,Astralis
+Stavn,DK,Rifler,84,Astralis
+Gr1ks,BY,AWP,76,Big
+Tabsen,DE,Ponta,76,Big
+Krimbo,DE,Ponta,80,Big
+JDC,DE,Entry,82,Big
+prosus,DE,Rifler,73,Big
+Alkaren,KZ,AWP,76,Heroic
+LNZ,SE,Ponta,77,Heroic
+yxngstxr,SE,Ponta,77,Heroic
+xFloud,TR,Entry,81,Heroic
+nilo,SE,Rifler,78,Heroic
+Artfrost,RU,AWP,77,Betboom
+d1Ledez,RU,Ponta,75,Betboom
+Boombl4,RU,Ponta,75,Betboom
+Magnojez,RU,Entry,84,Betboom
+Siren,RU,Rifler,76,Betboom
+Jambo,UA,AWP,77,Fnatic
+Krimz,SE,Ponta,75,Fnatic
+Fear,UA,Ponta,78,Fnatic
+Jacksmo,UA,Entry,73,Fnatic
+Blamef,DK,Rifler,79,Fnatic
+Ana,RO,AWP,79,Imperial FE
+WieenN,GE,Ponta,74,Imperial FE
+Kat,RO,Ponta,76,Imperial FE
+Tory,RU,Entry,74,Imperial FE
+Twenty3,RU,Rifler,79,Imperial FE
+Podi,FI,AWP,73,Ence
+Neityu,FR,Ponta,76,Ence
+sdy,UA,Ponta,79,Ence
+myLitsi,FI,Entry,70,Ence
+rigon,CH,Rifler,72,Ence
+Story,PT,AWP,81,Saw
+Ag1l,PT,Ponta,77,Saw
+aragornN,PT,Ponta,75,Saw
+krazy,PT,Entry,77,Saw
+Mutiris,PT,Rifler,80,Saw
+r1nkle,UA,AWP,74,Nip
+Snappi,DK,Ponta,73,Nip
+Sjuush,DK,Ponta,77,Nip
+Ewjerkz,PT,Entry,77,Nip
+xKacpersky,PT,Rifler,72,Nip
+910,MN,AWP,87,Mongolz
+mzinho,MN,Ponta,84,Mongolz
+Blitz,MN,Ponta,85,Mongolz
+Techno,MN,Entry,83,Mongolz
+Senzu,MN,Rifler,87,Mongolz
+Regali,RO,AWP,81,FlyQuest
+INS,AU,Ponta,73,FlyQuest
+Jks,AU,Ponta,81,FlyQuest
+nettik,AU,Entry,76,FlyQuest
+Vexite,AU,Rifler,76,FlyQuest
+z4kr,CN,AWP,83,Lynn Vision
+EmiliaQAQ,CN,Ponta,82,Lynn Vision
+Callmesus,CN,Ponta,76,Lynn Vision
+Westmelon,CN,Entry,75,Lynn Vision
+Starry,CN,Rifler,80,Lynn Vision
+Kaze,MY,AWP,77,Rare Atom
+Summer,CN,Ponta,76,Rare Atom
+L1hang,CN,Ponta,73,Rare Atom
+Childking,CN,Entry,76,Rare Atom
+Tiger,CN,Rifler,74,Rare Atom
+Jee,CN,AWP,77,Tyloo
+Moseyuh,CN,Ponta,76,Tyloo
+Mercury,CN,Ponta,78,Tyloo
+Jamyoung,CN,Entry,83,Tyloo
+Attacker,CN,Rifler,74,Tyloo
+Controlez,MN,AWP,77,Chingis Warriors
+Roux,MN,Ponta,75,Chingis Warriors
+Ariucle,MN,Ponta,73,Chingis Warriors
+yAmi,MN,Entry,71,Chingis Warriors
+cool4st,MN,Rifler,73,Chingis Warriors

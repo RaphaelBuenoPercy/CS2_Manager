@@ -3,8 +3,119 @@ import csv
 from typing import List, Dict
 import re
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from funcoes_simulacao_deepseek import jogar_partida, ResultadoPartida
 from collections import defaultdict
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
+
+def visualizar_bracket_torneio(resultados_partidas):
+    """
+    Exibe uma visualização gráfica do bracket (mata-mata) com conexões entre as fases.
+    """
+
+    if not resultados_partidas:
+        print("Nenhum resultado disponível para gerar a bracket.")
+        return
+
+    # Agrupa partidas por fase
+    fases = {}
+    for partida in resultados_partidas:
+        fase = getattr(partida, "fase", "Desconhecida")
+        fases.setdefault(fase, []).append(partida)
+
+    # Ordem padrão de fases
+    ordem_fases = ["Oitavas", "Quartas", "Semifinal", "Final"]
+    fases_ordenadas = [f for f in ordem_fases if f in fases]
+
+    if not fases_ordenadas:
+        print("As fases não foram detectadas corretamente nos resultados.")
+        return
+
+    cor_vencedor = "#43B581"
+    cor_perdedor = "#F04747"
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+    ax.set_title("BRACKET DO TORNEIO", fontsize=18, fontweight="bold", pad=20)
+    ax.axis("off")
+
+    x_spacing = 3
+    y_spacing = 1.8
+    posicoes_por_fase = {}
+
+    # --- desenhar fases e partidas ---
+    for i, fase in enumerate(fases_ordenadas):
+        partidas = fases[fase]
+        base_y = len(partidas) * y_spacing / 2
+        posicoes_por_fase[fase] = []
+
+        for j, partida in enumerate(partidas):
+            y_pos = j * y_spacing
+            posicoes_por_fase[fase].append((i * x_spacing, y_pos))
+
+            time1 = partida.mapas[0].time_ct
+            time2 = partida.mapas[0].time_tr
+            vencedor = partida.vencedor
+
+            # Time 1
+            ax.text(i * x_spacing, y_pos + 0.4, time1,
+                    ha='left', va='center',
+                    fontsize=10,
+                    color='white',
+                    bbox=dict(boxstyle="round,pad=0.3",
+                              facecolor=cor_vencedor if vencedor == time1 else cor_perdedor,
+                              edgecolor="none"))
+
+            # Time 2
+            ax.text(i * x_spacing, y_pos - 0.4, time2,
+                    ha='left', va='center',
+                    fontsize=10,
+                    color='white',
+                    bbox=dict(boxstyle="round,pad=0.3",
+                              facecolor=cor_vencedor if vencedor == time2 else cor_perdedor,
+                              edgecolor="none"))
+
+        # Nome da fase acima das partidas
+        ax.text(i * x_spacing, base_y + 1.2, fase.upper(),
+                ha='center', va='bottom', fontsize=12, fontweight="bold")
+
+    # --- conectar vencedores até a próxima fase ---
+    for i in range(len(fases_ordenadas) - 1):
+        fase_atual = fases_ordenadas[i]
+        fase_proxima = fases_ordenadas[i + 1]
+
+        partidas_atual = fases[fase_atual]
+        partidas_prox = fases[fase_proxima]
+
+        for j, partida in enumerate(partidas_atual):
+            vencedor = partida.vencedor
+            y_origem = posicoes_por_fase[fase_atual][j][1]
+            x_origem = posicoes_por_fase[fase_atual][j][0] + 1.3
+
+            # Encontra a partida seguinte onde o vencedor aparece
+            for k, prox in enumerate(partidas_prox):
+                if vencedor in (prox.mapas[0].time_ct, prox.mapas[0].time_tr):
+                    y_dest = posicoes_por_fase[fase_proxima][k][1]
+                    x_dest = posicoes_por_fase[fase_proxima][k][0] - 0.1
+                    ax.add_line(mlines.Line2D([x_origem, x_dest], [y_origem, y_dest],
+                                              color="#AAAAAA", linewidth=1.5, alpha=0.7))
+                    break
+
+    # Legenda
+    legend_handles = [
+        mpatches.Patch(color=cor_vencedor, label="Vencedor"),
+        mpatches.Patch(color=cor_perdedor, label="Perdedor")
+    ]
+    ax.legend(handles=legend_handles, loc='upper right')
+
+    plt.tight_layout()
+    plt.draw()          # força o render imediato
+    plt.show(block=False)  # exibe sem travar a execução
+    plt.pause(0.001)
+
 
 def obter_opcao_numerica(min_val: int, max_val: int) -> int:
     """Valida entradas numéricas do menu"""

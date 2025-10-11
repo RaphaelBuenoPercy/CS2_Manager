@@ -1,6 +1,6 @@
 import random
 import pandas as pd
-from funcoes_torneio_deepseek import criar_torneio, mostrar_resumo_torneio, salvar_estatisticas_torneio, mostrar_historico_partidas 
+from funcoes_torneio_deepseek import criar_torneio, mostrar_resumo_torneio, salvar_estatisticas_torneio, mostrar_historico_partidas, visualizar_bracket_torneio 
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
 from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote, simular_partida_auto
 
@@ -165,6 +165,8 @@ def menu_simular_torneio():
     print(f"\nSimulando {n} torneios automáticos...\n")
 
     resultados = simular_torneios_em_lote(times_escolhidos, simular_partida_auto, n)
+
+    visualizar_bracket_torneio(resultados["partidas"])
 
     df, df_total = salvar_estatisticas_torneio(resultados["partidas"], resultados["ranking"], nome_torneio)
     

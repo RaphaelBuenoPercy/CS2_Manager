@@ -1,8 +1,9 @@
 import csv
+import logging
 import random
 import math
 from dataclasses import dataclass
-from typing import Any, List, Tuple, Dict, Literal
+from typing import Any, List, Optional, Tuple, Dict, Literal
 from colorama import Fore, Style
 from collections import defaultdict
 import pandas as pd
@@ -13,6 +14,8 @@ from gerador_kills_deaths import (
     carregar_jogadores_de_arquivo,
     obter_jogadores,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # ==================== CLASSES DE DADOS ====================
@@ -25,6 +28,13 @@ class ResultadoMapa:
     placar_time2: int
     rounds: int
     rounds_extra: int = 0
+    # Antes este campo não existia na dataclass — só simular_partida_auto o
+    # criava dinamicamente (resultado_mapa.fase = fase). jogar_partida()
+    # nunca preenchia, então salvar_estatisticas_torneio quebrava com
+    # AttributeError sempre que uma partida manual/interativa (ex.: jogo do
+    # usuário em fase_mata_mata, fase_grupos, double elimination) entrava
+    # nas estatísticas do torneio.
+    fase: str = ""
 
 
 @dataclass
@@ -74,7 +84,6 @@ def validar_time(nome: str) -> str:
 
 def escolher_estrategia(time: str, estrategias: List[str], modo: ModoJogo) -> int:
     """Seleção de estratégia baseada no modo de jogo"""
-    print(modo)
     if modo == "auto":
         return random.randint(0, len(estrategias) - 1)
 
@@ -160,6 +169,7 @@ def jogar_half(
         print(f"Erro de configuração: Estratégia não encontrada para o mapa {mapa}")
         raise
     except Exception as e:
+        logger.exception("Erro durante o half no mapa %s", mapa)
         print(f"Erro durante o half: {type(e).__name__} - {str(e)}")
         raise
 
@@ -253,9 +263,34 @@ def jogar_mapa(
         return resultado
 
     except Exception as e:
+        logger.exception("Erro durante a execução do mapa %s", mapa)
         print(f"Erro durante a execução do mapa {mapa}: {str(e)}")
         resultado.erro = True
         return resultado
+
+
+def _vencedor_overtime(
+    resultado, placar_meta: int, time1: str, time2: str
+) -> Optional[str]:
+    """Verifica se algum time já cravou a meta do overtime e, se sim, anuncia
+    e retorna o nome do vencedor (ou None se ainda não decidido)."""
+    if (
+        resultado.placar_time1 >= placar_meta
+        and resultado.placar_time1 > resultado.placar_time2
+    ):
+        print(
+            f"{time1} venceu o overtime {resultado.placar_time1}-{resultado.placar_time2}!"
+        )
+        return time1
+    if (
+        resultado.placar_time2 >= placar_meta
+        and resultado.placar_time2 > resultado.placar_time1
+    ):
+        print(
+            f"{time2} venceu o overtime {resultado.placar_time1}-{resultado.placar_time2}!"
+        )
+        return time2
+    return None
 
 
 def jogar_ot(
@@ -268,78 +303,64 @@ def jogar_ot(
     jogadores_time1: List[Dict[str, Any]],
     jogadores_time2: List[Dict[str, Any]],
 ) -> ResultadoMapa:
+    """Joga overtimes (MR3, alternando lado a cada 3 rounds) até decidir o mapa.
 
+    Antes, o código sempre jogava as duas metades do OT antes de checar se a
+    meta havia sido atingida — ou seja, mesmo que um time já tivesse cravado
+    a vitória do overtime na primeira metade, a segunda metade era jogada do
+    mesmo jeito, podendo inflar o placar do adversário e até inverter o
+    resultado real do overtime. Agora o placar é checado logo após cada
+    metade, e a segunda só é jogada se a primeira não decidiu nada.
+    """
     while True:
         print(
             f"\n=== Overtime {overtime_count} (Placar: {resultado.placar_time1}-{resultado.placar_time2}) ==="
         )
-
-        # Jogar até 4 vitórias no overtime, alternando lados a cada 3 rounds
         placar_meta = 13 + (overtime_count * 3)  # Meta para vencer o overtime
 
-        # Primeiro lado do overtime (Time 1 CT)
-        # Jogar rounds alternados até atingir 4 vitórias
-        while True:
-            # Primeiro Half Overtime
-            placar_time1_1ot, placar_time2_1ot = jogar_half(
-                time_ct=time1,
-                time_tr=time2,
-                jogadores_ct=jogadores_time1,  # Passando a lista de jogadores para o parâmetro correto
-                jogadores_tr=jogadores_time2,  # Passando a lista de jogadores para o parâmetro correto
-                mapa=mapa,
-                modo=modo,
-                # Os argumentos abaixo são opcionais, você só precisa passar se quiser mudar o padrão
-                max_rounds=3,
-                meta=placar_meta,
-                pontos_iniciais_ct=resultado.placar_time1,
-                pontos_iniciais_tr=resultado.placar_time2,
-            )
+        # Primeira metade do overtime (Time 1 no CT)
+        placar_time1_1ot, placar_time2_1ot = jogar_half(
+            time_ct=time1,
+            time_tr=time2,
+            jogadores_ct=jogadores_time1,
+            jogadores_tr=jogadores_time2,
+            mapa=mapa,
+            modo=modo,
+            max_rounds=3,
+            meta=placar_meta,
+            pontos_iniciais_ct=resultado.placar_time1,
+            pontos_iniciais_tr=resultado.placar_time2,
+        )
+        resultado.placar_time1 += placar_time1_1ot
+        resultado.placar_time2 += placar_time2_1ot
 
-            resultado.placar_time1 += placar_time1_1ot
-            resultado.placar_time2 += placar_time2_1ot
-
-            # TR joga até 3 rounds OU até atingir 4 vitórias
-            placar_time2_1ot, placar_time1_1ot = jogar_half(
-                time_ct=time2,
-                time_tr=time1,
-                jogadores_ct=jogadores_time2,  # Passando a lista de jogadores para o parâmetro correto
-                jogadores_tr=jogadores_time1,  # Passando a lista de jogadores para o parâmetro correto
-                mapa=mapa,
-                modo=modo,
-                # Os argumentos abaixo são opcionais, você só precisa passar se quiser mudar o padrão
-                max_rounds=3,
-                meta=placar_meta,
-                pontos_iniciais_ct=resultado.placar_time2,
-                pontos_iniciais_tr=resultado.placar_time1,
-            )
-
-            resultado.placar_time1 += placar_time1_1ot
-            resultado.placar_time2 += placar_time2_1ot
-            break
-
-        # Verificar se o overtime terminou
-        if resultado.placar_time1 >= placar_meta:
-            print(
-                f"{time1} venceu o overtime {resultado.placar_time1}-{resultado.placar_time2}!"
-            )
+        vencedor = _vencedor_overtime(resultado, placar_meta, time1, time2)
+        if vencedor:
             return resultado
-        elif resultado.placar_time2 >= placar_meta:
-            print(
-                f"{time2} venceu o overtime {resultado.placar_time2}-{resultado.placar_time2}!"
-            )
+
+        # Segunda metade do overtime (Time 2 no CT) — só roda se ninguém
+        # cravou a vitória na primeira metade.
+        placar_time2_2ot, placar_time1_2ot = jogar_half(
+            time_ct=time2,
+            time_tr=time1,
+            jogadores_ct=jogadores_time2,
+            jogadores_tr=jogadores_time1,
+            mapa=mapa,
+            modo=modo,
+            max_rounds=3,
+            meta=placar_meta,
+            pontos_iniciais_ct=resultado.placar_time2,
+            pontos_iniciais_tr=resultado.placar_time1,
+        )
+        resultado.placar_time1 += placar_time1_2ot
+        resultado.placar_time2 += placar_time2_2ot
+
+        vencedor = _vencedor_overtime(resultado, placar_meta, time1, time2)
+        if vencedor:
             return resultado
-        else:
-            overtime_count += 1
-            return jogar_ot(
-                time1,
-                time2,
-                mapa,
-                modo,
-                resultado,
-                overtime_count,
-                jogadores_time1=jogadores_time1,
-                jogadores_time2=jogadores_time2,
-            )
+
+        # Ninguém decidiu: próximo overtime
+        overtime_count += 1
 
 
 def jogar_partida(
@@ -383,6 +404,7 @@ def jogar_partida(
             if not mapas:
                 raise RuntimeError("Nenhum mapa válido selecionado")
         except Exception as e:
+            logger.exception("Erro na seleção de mapas entre %s e %s", time1, time2)
             print(f"Erro na seleção de mapas: {str(e)}")
             return None
 
@@ -398,6 +420,7 @@ def jogar_partida(
                     print(f"Mapa {mapa} ignorado devido a erros")
                     continue
 
+                resultado_mapa.fase = fase_torneio
                 resultado.mapas.append(resultado_mapa)
 
                 vitorias_time1 = sum(
@@ -419,6 +442,7 @@ def jogar_partida(
                     break
 
             except Exception as e:
+                logger.exception("Erro crítico durante o mapa %s", mapa)
                 print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
                 return resultado  # Retorna resultados parciais
 
@@ -449,6 +473,7 @@ def jogar_partida(
         return resultado
 
     except Exception as e:
+        logger.exception("Erro fatal na partida entre %s e %s", time1, time2)
         print(f"Erro fatal na partida: {str(e)}")
         return None
 
@@ -466,32 +491,12 @@ def jogar_partida(
 # jogar_partida(modo='auto', time1="FURIA", time2="Liquid")
 
 
-def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """
-    Filtra o DataFrame para obter os jogadores de um time específico e
-    formata os dados para a simulação.
-    """
-    time_df = df[df["time"] == nome_time]
-    if len(time_df) == 0:
-        raise ValueError(f"Time '{nome_time}' não encontrado no CSV.")
-
-    jogadores = []
-    for _, row in time_df.iterrows():
-        print(row["over"])
-        over_normalizado = float(row["over"]) / 80.0
-
-        jogadores.append(
-            {
-                "nome": row["nick"],
-                "over": over_normalizado,
-                "role": row["funcao"],
-                "estatisticas": {
-                    "mapas": {},  # estatísticas individuais por mapa
-                    "total": {"kills": 0, "deaths": 0, "rounds": 0},
-                },
-            }
-        )
-    return jogadores
+# obter_jogadores NÃO é redefinida aqui — usa-se a versão única, importada de
+# gerador_kills_deaths (ver topo do arquivo). Havia uma cópia duplicada nesta
+# posição que sombreava o import e não incluía a chave "time" no dicionário
+# do jogador, causando KeyError em salvar_estatisticas_torneio sempre que uma
+# partida vinha de jogar_partida() (modo manual / partidas do jogador em
+# torneios).
 
 
 def calcular_probabilidade_vitoria(

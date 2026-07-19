@@ -1,16 +1,18 @@
+import logging
 import random
-import pandas as pd
 from funcoes_torneio_deepseek import (
     criar_torneio,
     mostrar_resumo_torneio,
     salvar_estatisticas_torneio,
     mostrar_historico_partidas,
     visualizar_bracket_torneio,
+    listar_torneios_salvos,
 )
 from funcoes_prejogo_deepseek import (
     times,
     listar_times,
     carregar_times_csv,
+    salvar_times_csv,
     adicionar_time,
     calcular_overs_medios_times,
     exibir_overs_medios_times,
@@ -21,7 +23,14 @@ from funcoes_simulacao_deepseek import (
     simular_torneios_em_lote,
     simular_partida_auto,
 )
+
+# Única implementação de carregar_jogadores_de_arquivo (antes havia uma
+# cópia idêntica aqui, outra em funcoes_simulacao_deepseek.py e outra em
+# gerador_kills_deaths.py — todas fazendo exatamente a mesma coisa).
+from gerador_kills_deaths import carregar_jogadores_de_arquivo
 from modo_carreira import menu_carreira
+
+logger = logging.getLogger(__name__)
 
 
 # ==================== FUNÇÕES AUXILIARES ====================
@@ -68,7 +77,13 @@ def menu_gerenciar_times():
 
         if escolha == 1:
             nome = input("Nome do novo time: ").strip()
-            adicionar_time(nome)
+            try:
+                adicionar_time(nome)
+                salvar_times_csv()
+            except ValueError as e:
+                # Antes isso não era tratado aqui: um nome vazio ou duplicado
+                # derrubava o menu inteiro com uma exceção não capturada.
+                print(f"Erro: {e}\n")
 
         elif escolha == 2:
             listar_times()
@@ -78,7 +93,13 @@ def menu_gerenciar_times():
                     if 0 <= idx < len(times):
                         if confirmar_acao("Tem certeza que deseja remover este time?"):
                             removed = times.pop(idx)
+                            salvar_times_csv()
                             print(f"Time {removed} removido!")
+                            print(
+                                "Obs.: os jogadores desse time em 'jogadores.csv' "
+                                "não foram apagados — edite o arquivo manualmente "
+                                "se quiser removê-los também.\n"
+                            )
                 except ValueError:
                     print("Número inválido!")
 
@@ -148,8 +169,7 @@ def menu_torneio():
         if escolha == 1:
             criar_torneio(times)
         elif escolha == 2:
-            # Implementar listagem de torneios
-            print("Funcionalidade em desenvolvimento!")
+            listar_torneios_salvos()
         elif escolha == 3:
             menu_simular_torneio()
             return
@@ -227,26 +247,20 @@ def menu_simular_torneio():
         )
 
 
-def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
-    """
-    Carrega os dados dos jogadores diretamente de um arquivo CSV.
-
-    Args:
-        caminho_do_arquivo (str): O nome do arquivo (ex: 'jogadores.csv').
-
-    Returns:
-        pd.DataFrame: Um DataFrame com todos os jogadores carregados.
-    """
-    try:
-        return pd.read_csv(caminho_do_arquivo)
-    except FileNotFoundError:
-        print(f"Erro: O arquivo '{caminho_do_arquivo}' não foi encontrado.")
-        print("Certifique-se de que o arquivo CSV está na mesma pasta que o script.")
-        return None
-
-
 # ==================== MENU PRINCIPAL ====================
+def configurar_logging():
+    """Configura logging básico: erros/diagnósticos vão para simulador.log,
+    sem poluir o console — que continua mostrando só a narrativa do jogo."""
+    logging.basicConfig(
+        filename="simulador.log",
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+
 def main():
+    configurar_logging()
+
     # Perguntar ao iniciar se deseja carregar o times.csv
     mostrar_titulo("Bem-vindo ao simulador de CS2!")
 
@@ -254,6 +268,10 @@ def main():
         try:
             carregar_times_csv()  # Carrega o arquivo padrão
             df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+            if df_jogadores is None:
+                print(
+                    "⚠️ 'jogadores.csv' não encontrado — os times foram carregados, mas sem elenco.\n"
+                )
         except FileNotFoundError:
             print(f"Arquivo 'times.csv' não encontrado no diretório atual!\n")
 

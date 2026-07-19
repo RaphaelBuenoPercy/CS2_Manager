@@ -1,7 +1,8 @@
 import random
 import csv
+import glob
+import logging
 from typing import List, Dict
-import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -11,6 +12,8 @@ from funcoes_simulacao_deepseek import (
     ResultadoPartida,
 )
 from collections import defaultdict
+
+logger = logging.getLogger(__name__)
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -283,11 +286,21 @@ def exibir_grupos(grupos: List[List[str]]) -> None:
 
 
 def realizar_jogo_dbelim(
-    time1: str, time2: str, rodada: int, chave: str, resultados: List[dict]
+    time1: str,
+    time2: str,
+    rodada: int,
+    chave: str,
+    resultados: List["ResultadoPartida"],
 ) -> ResultadoPartida:
     """
-    Realiza um jogo entre dois times e retorna o vencedor e o perdedor.
-    Adiciona o resultado à lista de resultados.
+    Realiza um jogo entre dois times e retorna o ResultadoPartida.
+
+    Quem chama esta função é responsável por adicionar o resultado retornado
+    à lista `resultados` (o parâmetro `resultados` é mantido só para manter a
+    assinatura compatível — esta função não insere mais nada nele: antes ela
+    também adicionava um resumo em dict, e o chamador ainda adicionava o
+    objeto ResultadoPartida por cima, deixando a lista com entradas
+    duplicadas e de tipos misturados).
     """
     print(f"\nJogo entre: {time1} e {time2}!\n")
     print("Modos de partida")
@@ -307,17 +320,19 @@ def realizar_jogo_dbelim(
     else:
         raise ValueError("Escolha inválida!")
 
-    # Adiciona o resultado à lista de resultados
-    resultados.append(
-        {
-            "rodada": rodada,
-            "chave": chave,
-            "time1": time1,
-            "time2": time2,
-            "vencedor": resultado.vencedor,
-            "perdedor": resultado.perdedor,
-        }
-    )
+    if resultado is None:
+        # jogar_partida pode retornar None (ex.: falha na seleção de mapas).
+        # Antes isso não era tratado aqui e derrubava o torneio inteiro com
+        # AttributeError. Mesmo fallback usado em fase_mata_mata: simula
+        # automaticamente em vez de travar o torneio.
+        print(
+            "⚠️ Não foi possível concluir a partida manualmente, simulando automaticamente..."
+        )
+        vencedor_partida, perdedor_partida, resultado = simular_partida_auto(
+            time1, time2, rodada
+        )
+        resultado.vencedor = vencedor_partida
+        resultado.perdedor = perdedor_partida
 
     return resultado
 
@@ -401,30 +416,43 @@ def fase_double_elimination(
         novos_vencedores = []
         novos_perdedores = []
 
+        # Número ímpar de times na chave de vencedores: o último time da
+        # rodada recebe um "bye" (avança direto) em vez de ser descartado
+        # silenciosamente, como acontecia antes.
+        times_da_rodada = list(times)
+        if len(times_da_rodada) % 2 == 1:
+            time_bye = times_da_rodada.pop()
+            print(f"\n🎟️  {time_bye} recebeu um bye e avança direto nesta rodada.")
+            novos_vencedores.append(time_bye)
+
         # Jogos na chave de vencedores
-        for i in range(0, len(times), 2):
-            if i + 1 < len(times):
-                time1 = times[i]
-                time2 = times[i + 1]
-                resultado = realizar_jogo_dbelim(
-                    time1, time2, rodada, "vencedores", resultados
-                )
-                resultados.append(resultado)
-                novos_vencedores.append(resultado.vencedor)
-                novos_perdedores.append(resultado.perdedor)
+        for i in range(0, len(times_da_rodada), 2):
+            time1 = times_da_rodada[i]
+            time2 = times_da_rodada[i + 1]
+            resultado = realizar_jogo_dbelim(
+                time1, time2, rodada, "vencedores", resultados
+            )
+            resultados.append(resultado)
+            novos_vencedores.append(resultado.vencedor)
+            novos_perdedores.append(resultado.perdedor)
 
         # Jogos na chave de perdedores (se houver times na chave de perdedores)
         if perdedores:
+            perdedores_da_rodada = list(perdedores)
             novos_perdedores_chave = []
-            for i in range(0, len(perdedores), 2):
-                if i + 1 < len(perdedores):
-                    time1 = perdedores[i]
-                    time2 = perdedores[i + 1]
-                    resultado = realizar_jogo_dbelim(
-                        time1, time2, rodada, "vencedores", resultados
-                    )
-                    resultados.append(resultado)
-                    novos_perdedores_chave.append(resultado.vencedor)
+            if len(perdedores_da_rodada) % 2 == 1:
+                time_bye = perdedores_da_rodada.pop()
+                print(f"\n🎟️  {time_bye} recebeu um bye na chave de perdedores.")
+                novos_perdedores_chave.append(time_bye)
+
+            for i in range(0, len(perdedores_da_rodada), 2):
+                time1 = perdedores_da_rodada[i]
+                time2 = perdedores_da_rodada[i + 1]
+                resultado = realizar_jogo_dbelim(
+                    time1, time2, rodada, "perdedores", resultados
+                )
+                resultados.append(resultado)
+                novos_perdedores_chave.append(resultado.vencedor)
 
             perdedores = novos_perdedores_chave
 
@@ -541,44 +569,38 @@ def fase_mata_mata(
     return times, resultados
 
 
-def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> None:
-    """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa."""
-    resultados_dict = [resultado for resultado in resultados]
+def salvar_resultados_times_csv(
+    nome_torneio: str, resultados: List["ResultadoPartida"]
+) -> None:
+    """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa.
 
+    `resultados` é sempre uma lista de objetos ResultadoPartida (dataclass),
+    nunca dicionários — a versão antiga chamava `.get(...)` neles e tentava
+    extrair os dados dos mapas via regex em cima de `str(ResultadoMapa)`,
+    o que nunca funcionou (`AttributeError` garantido, pois dataclasses não
+    têm `.get`, e `resultado.mapas` são objetos, não strings). Agora os
+    campos são lidos diretamente dos atributos reais dos objetos.
+    """
     try:
         linhas_csv = []
 
-        for resultado in resultados_dict:
-            partida_id = resultado.get("partida_id")
-            fase = resultado.get("fase")
-            mapas = resultado.get("mapas", [])
+        for resultado in resultados:
+            partida_id = getattr(resultado, "partida_id", None)
+            fase = getattr(resultado, "fase", None)
+            mapas = getattr(resultado, "mapas", [])
 
-            for mapa_str in mapas:
-                # Usando regex para extrair os dados do mapa
-                pattern = r"ResultadoMapa\(mapa='([^']+)', time_ct='([^']+)', time_tr='([^']+)', placar_time1=(\d+), placar_time2=(\d+), rounds_extra=(\d+)"
-                match = re.match(pattern, mapa_str)
-
-                if match:
-                    nome_mapa = match.group(1)
-                    time_ct = match.group(2)
-                    time_tr = match.group(3)
-                    placar_time1 = int(match.group(4))
-                    placar_time2 = int(match.group(5))
-
-                    # Cria uma nova linha para o CSV
-                    linha = {
+            for mapa in mapas:
+                linhas_csv.append(
+                    {
                         "partida_id": partida_id,
-                        "time1": time_ct,
-                        "time2": time_tr,
-                        "placar_time1": placar_time1,
-                        "placar_time2": placar_time2,
-                        "mapas": nome_mapa,
+                        "time1": mapa.time_ct,
+                        "time2": mapa.time_tr,
+                        "placar_time1": mapa.placar_time1,
+                        "placar_time2": mapa.placar_time2,
+                        "mapas": mapa.mapa,
                         "fase": fase,
                     }
-
-                    linhas_csv.append(linha)
-                else:
-                    print(f"Formato inválido para o mapa: {mapa_str}")
+                )
 
         # Escreve os dados no arquivo CSV
         with open(
@@ -602,6 +624,7 @@ def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> No
         print(f"\nResultados salvos em {nome_torneio}_resultados.csv")
 
     except Exception as e:
+        logger.exception("Erro ao salvar resultados do torneio '%s'", nome_torneio)
         print(f"Erro ao salvar resultados: {str(e)}")
 
 
@@ -783,7 +806,7 @@ def salvar_estatisticas_gerais_jogadores(df_estatisticas, ranking_times, nome_to
 
     # Salva o CSV
     agrupado.to_csv(
-        f"estatisticas_gerais_jogadores_{nome_torneio}",
+        f"estatisticas_gerais_jogadores_{nome_torneio}.csv",
         index=False,
         encoding="utf-8-sig",
     )
@@ -1046,6 +1069,40 @@ def mostrar_resumo_torneio(df, df_total):
     )
 
     return top10_total, top10_mapas
+
+
+def listar_torneios_salvos() -> List[str]:
+    """Lista os torneios anteriores com base nos CSVs de estatísticas salvos
+    no diretório atual (gerados por salvar_estatisticas_torneio).
+
+    Antes esta era só uma opção de menu com "Funcionalidade em
+    desenvolvimento" — agora lê de fato os arquivos `estatisticas_torneio_*`.
+    """
+    arquivos = sorted(glob.glob("estatisticas_torneio_*.csv"))
+
+    if not arquivos:
+        print("\nNenhum torneio salvo encontrado neste diretório ainda.")
+        return []
+
+    print("\n=== TORNEIOS ANTERIORES ===")
+    nomes = []
+    for i, arquivo in enumerate(arquivos, 1):
+        # "estatisticas_torneio_<nome>.csv" -> <nome>
+        nome = arquivo[len("estatisticas_torneio_") : -len(".csv")]
+        nomes.append(nome)
+        try:
+            df = pd.read_csv(arquivo)
+            n_registros = len(df)
+            times_envolvidos = sorted(set(df["Time"])) if "Time" in df.columns else []
+            print(
+                f"  {i}. {nome}  ({n_registros} registros, times: "
+                f"{', '.join(times_envolvidos) if times_envolvidos else '—'})"
+            )
+        except Exception:
+            logger.exception("Erro ao ler estatísticas do torneio '%s'", nome)
+            print(f"  {i}. {nome}  (não foi possível ler os detalhes)")
+
+    return nomes
 
 
 def criar_torneio(times: List[str]) -> None:

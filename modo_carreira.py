@@ -102,8 +102,22 @@ def jogar_torneio_carreira(dados):
     nome_torneio = CALENDARIO_TORNEIOS[mes]
     print(f"\n🏆 Torneio do mês: {nome_torneio}")
 
+    # fase_mata_mata exige um número de times que seja potência de 2. Antes o
+    # código sempre fazia random.sample(times, 8) e quebrava com ValueError
+    # se houvesse menos de 8 times cadastrados.
+    if len(times) >= 8:
+        qtd_times_torneio = 8
+    elif len(times) >= 4:
+        qtd_times_torneio = 4
+    else:
+        print(
+            f"⚠️ Times insuficientes para disputar o {nome_torneio} "
+            f"(mínimo 4, há {len(times)} cadastrados). Torneio cancelado neste mês."
+        )
+        return
+
     # Sorteia os times participantes
-    times_disponiveis = random.sample(times, 8)
+    times_disponiveis = random.sample(times, qtd_times_torneio)
     if dados["time_usuario"] not in times_disponiveis:
         times_disponiveis[0] = dados["time_usuario"]
 
@@ -131,7 +145,9 @@ def jogar_torneio_carreira(dados):
     if isinstance(vencedor, list):
         vencedor = vencedor[0]
 
-    posicao = 1 if vencedor == dados["time_usuario"] else random.randint(2, 8)
+    posicao = (
+        1 if vencedor == dados["time_usuario"] else random.randint(2, qtd_times_torneio)
+    )
     if posicao == 1:
         dados["orcamento"] += 50000
         dados["vitorias"] += 1
@@ -153,16 +169,6 @@ def jogar_torneio_carreira(dados):
     print("\n=== ESTATÍSTICAS DO TORNEIO ===")
     print(df_total)
     input("\nPressione ENTER para continuar...")
-
-
-def mostrar_historico(dados):
-    print("\n=== HISTÓRICO DE TORNEIOS ===")
-    if not dados["historico"]:
-        print("Nenhum torneio jogado ainda.\n")
-        return
-    for h in dados["historico"]:
-        print(f"{h['ano']}/{h['mes']:02d} - {h['torneio']}: {h['posicao']}º lugar")
-    print("==============================\n")
 
 
 def mostrar_estatisticas_gerais(dados):
@@ -231,6 +237,9 @@ def menu_carreira():
         if escolha == 1:
             jogar_torneio_carreira(dados)
             avancar_mes(dados)
+            salvar_progresso(
+                dados
+            )  # autosave: evita perder o mês jogado se algo travar depois
         elif escolha == 2:
             mostrar_historico(dados)
         elif escolha == 3:

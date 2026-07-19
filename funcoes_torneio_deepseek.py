@@ -5,12 +5,17 @@ import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from funcoes_simulacao_deepseek import jogar_partida, ResultadoPartida
+from funcoes_simulacao_deepseek import (
+    jogar_partida,
+    simular_partida_auto,
+    ResultadoPartida,
+)
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
+
 
 def visualizar_bracket_torneio(resultados_partidas):
     """
@@ -61,26 +66,47 @@ def visualizar_bracket_torneio(resultados_partidas):
             vencedor = partida.vencedor
 
             # Time 1
-            ax.text(i * x_spacing, y_pos + 0.4, time1,
-                    ha='left', va='center',
-                    fontsize=10,
-                    color='white',
-                    bbox=dict(boxstyle="round,pad=0.3",
-                              facecolor=cor_vencedor if vencedor == time1 else cor_perdedor,
-                              edgecolor="none"))
+            ax.text(
+                i * x_spacing,
+                y_pos + 0.4,
+                time1,
+                ha="left",
+                va="center",
+                fontsize=10,
+                color="white",
+                bbox=dict(
+                    boxstyle="round,pad=0.3",
+                    facecolor=cor_vencedor if vencedor == time1 else cor_perdedor,
+                    edgecolor="none",
+                ),
+            )
 
             # Time 2
-            ax.text(i * x_spacing, y_pos - 0.4, time2,
-                    ha='left', va='center',
-                    fontsize=10,
-                    color='white',
-                    bbox=dict(boxstyle="round,pad=0.3",
-                              facecolor=cor_vencedor if vencedor == time2 else cor_perdedor,
-                              edgecolor="none"))
+            ax.text(
+                i * x_spacing,
+                y_pos - 0.4,
+                time2,
+                ha="left",
+                va="center",
+                fontsize=10,
+                color="white",
+                bbox=dict(
+                    boxstyle="round,pad=0.3",
+                    facecolor=cor_vencedor if vencedor == time2 else cor_perdedor,
+                    edgecolor="none",
+                ),
+            )
 
         # Nome da fase acima das partidas
-        ax.text(i * x_spacing, base_y + 1.2, fase.upper(),
-                ha='center', va='bottom', fontsize=12, fontweight="bold")
+        ax.text(
+            i * x_spacing,
+            base_y + 1.2,
+            fase.upper(),
+            ha="center",
+            va="bottom",
+            fontsize=12,
+            fontweight="bold",
+        )
 
     # --- conectar vencedores até a próxima fase ---
     for i in range(len(fases_ordenadas) - 1):
@@ -100,19 +126,26 @@ def visualizar_bracket_torneio(resultados_partidas):
                 if vencedor in (prox.mapas[0].time_ct, prox.mapas[0].time_tr):
                     y_dest = posicoes_por_fase[fase_proxima][k][1]
                     x_dest = posicoes_por_fase[fase_proxima][k][0] - 0.1
-                    ax.add_line(mlines.Line2D([x_origem, x_dest], [y_origem, y_dest],
-                                              color="#AAAAAA", linewidth=1.5, alpha=0.7))
+                    ax.add_line(
+                        mlines.Line2D(
+                            [x_origem, x_dest],
+                            [y_origem, y_dest],
+                            color="#AAAAAA",
+                            linewidth=1.5,
+                            alpha=0.7,
+                        )
+                    )
                     break
 
     # Legenda
     legend_handles = [
         mpatches.Patch(color=cor_vencedor, label="Vencedor"),
-        mpatches.Patch(color=cor_perdedor, label="Perdedor")
+        mpatches.Patch(color=cor_perdedor, label="Perdedor"),
     ]
-    ax.legend(handles=legend_handles, loc='upper right')
+    ax.legend(handles=legend_handles, loc="upper right")
 
     plt.tight_layout()
-    plt.draw()          # força o render imediato
+    plt.draw()  # força o render imediato
     plt.show(block=False)  # exibe sem travar a execução
     plt.pause(0.001)
 
@@ -128,9 +161,10 @@ def obter_opcao_numerica(min_val: int, max_val: int) -> int:
         except ValueError:
             print("Erro: Entrada inválida. Digite apenas números!")
 
+
 def listar_times_disponiveis(times: List[str]) -> None:
     """Lista todos os times disponíveis para seleção.
-    
+
     Args:
         times: Lista de nomes dos times cadastrados
     """
@@ -138,18 +172,21 @@ def listar_times_disponiveis(times: List[str]) -> None:
     for i, time in enumerate(times, 1):
         print(f"{i}. {time}")
 
-def validar_input_numerico(mensagem: str, tipo=int, min_val: int = None, max_val: int = None):
+
+def validar_input_numerico(
+    mensagem: str, tipo=int, min_val: int = None, max_val: int = None
+):
     """Valida entradas numéricas do usuário de forma segura.
-    
+
     Args:
         mensagem: Texto exibido para o usuário
         tipo: Tipo numérico esperado (int/float)
         min_val: Valor mínimo permitido
         max_val: Valor máximo permitido
-    
+
     Returns:
         Valor numérico validado
-    
+
     Raises:
         ValueError: Se input for inválido ou fora dos limites
     """
@@ -164,16 +201,17 @@ def validar_input_numerico(mensagem: str, tipo=int, min_val: int = None, max_val
         except ValueError:
             print("Entrada inválida. Digite um número válido.")
 
+
 def selecionar_times(times: List[str], num_times: int) -> List[str]:
     """Permite a seleção de times participantes do torneio.
-    
+
     Args:
         times: Lista completa de times disponíveis
         num_times: Número de times a serem selecionados
-    
+
     Returns:
         Lista com os times selecionados
-    
+
     Raises:
         ValueError: Se números forem inválidos ou quantidade incorreta
     """
@@ -185,49 +223,56 @@ def selecionar_times(times: List[str], num_times: int) -> List[str]:
             escolhas = input("Digite os números separados por espaço: ").split()
             if len(escolhas) != num_times:
                 raise ValueError(f"Selecione exatamente {num_times} times")
-            
+
             indices = [int(e) for e in escolhas]
             if any(e < 1 or e > len(times) for e in indices):
                 raise ValueError("Números fora do intervalo válido")
-            
-            print([times[i-1] for i in indices])
 
-            return[times[i-1] for i in indices]
-        
+            print([times[i - 1] for i in indices])
+
+            return [times[i - 1] for i in indices]
+
         except ValueError as e:
             print(f"Erro: {e}. Tente novamente.")
 
+
 def validar_num_grupos(times: List[str], num_grupos: int) -> int:
     """Valida se o número de grupos é compatível com a quantidade de times.
-    
+
     Args:
         times: Lista de times selecionados
         num_grupos: Número de grupos proposto
-    
+
     Returns:
         Número de grupos validado
     """
     while len(times) % num_grupos != 0:
-        print(f"Não é possível dividir {len(times)} times em {num_grupos} grupos iguais")
-        num_grupos = validar_input_numerico("Novo número de grupos: ", min_val=1, max_val=len(times))
+        print(
+            f"Não é possível dividir {len(times)} times em {num_grupos} grupos iguais"
+        )
+        num_grupos = validar_input_numerico(
+            "Novo número de grupos: ", min_val=1, max_val=len(times)
+        )
     return num_grupos
+
 
 def sortear_grupos(times: List[str], num_grupos: int) -> List[List[str]]:
     """Sorteia os times em grupos aleatórios.
-    
+
     Args:
         times: Lista de times participantes
         num_grupos: Número de grupos desejado
-    
+
     Returns:
         Lista de grupos com distribuição aleatória
     """
     random.shuffle(times)
     return [times[i::num_grupos] for i in range(num_grupos)]
 
+
 def exibir_grupos(grupos: List[List[str]]) -> None:
     """Exibe os grupos formatados na tela.
-    
+
     Args:
         grupos: Lista de grupos a serem exibidos
     """
@@ -236,7 +281,10 @@ def exibir_grupos(grupos: List[List[str]]) -> None:
         print(f"Grupo {i}: {', '.join(grupo)}\n")
     print("\n")
 
-def realizar_jogo_dbelim(time1: str, time2: str, rodada: int, chave: str, resultados: List[dict]) -> ResultadoPartida:
+
+def realizar_jogo_dbelim(
+    time1: str, time2: str, rodada: int, chave: str, resultados: List[dict]
+) -> ResultadoPartida:
     """
     Realiza um jogo entre dois times e retorna o vencedor e o perdedor.
     Adiciona o resultado à lista de resultados.
@@ -249,80 +297,98 @@ def realizar_jogo_dbelim(time1: str, time2: str, rodada: int, chave: str, result
     escolha = obter_opcao_numerica(1, 2)
 
     if escolha == 1:
-        resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio=rodada)
+        resultado = jogar_partida(
+            modo="auto", time1=time1, time2=time2, fase_torneio=rodada
+        )
     elif escolha == 2:
-        resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio=rodada)
+        resultado = jogar_partida(
+            modo="manual", time1=time1, time2=time2, fase_torneio=rodada
+        )
     else:
         raise ValueError("Escolha inválida!")
 
     # Adiciona o resultado à lista de resultados
-    resultados.append({
-        "rodada": rodada,
-        "chave": chave,
-        "time1": time1,
-        "time2": time2,
-        "vencedor": resultado.vencedor,
-        "perdedor": resultado.perdedor
-    })
+    resultados.append(
+        {
+            "rodada": rodada,
+            "chave": chave,
+            "time1": time1,
+            "time2": time2,
+            "vencedor": resultado.vencedor,
+            "perdedor": resultado.perdedor,
+        }
+    )
 
     return resultado
 
-def fase_grupos(times: List[str], num_grupos: int, num_classificados: int, ida_e_volta: bool) -> tuple:
+
+def fase_grupos(
+    times: List[str], num_grupos: int, num_classificados: int, ida_e_volta: bool
+) -> tuple:
     """Executa a fase de grupos do torneio.
-    
+
     Args:
         times: Lista de times participantes
         num_grupos: Número de grupos
         num_classificados: Times classificados por grupo
         ida_e_volta: Se True, jogos de ida e volta
-    
+
     Returns:
         Tuple: (Lista de classificados, Lista de resultados)
     """
     grupos = sortear_grupos(times, num_grupos)
     exibir_grupos(grupos)
-    
+
     classificados = []
     resultados = []
-    
+
     for grupo in grupos:
         placares = {time: 0 for time in grupo}
-        
+
         # Simula todas as combinações de partidas
         for i in range(len(grupo)):
-            for j in range(i+1, len(grupo)):
+            for j in range(i + 1, len(grupo)):
                 time1, time2 = grupo[i], grupo[j]
-                
+
                 # Jogos de ida e volta
                 for _ in range(2 if ida_e_volta else 1):
                     print(f"\nJogo entre: {time1} e {time2}!\n")
                     print("Modos de partida")
                     print("1. Partida Rápida (Aleatória)")
                     print("2. Partida Personalizada")
-        
+
                     escolha = obter_opcao_numerica(1, 2)
-        
+
                     if escolha == 1:
-                        resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio="Grupos")
+                        resultado = jogar_partida(
+                            modo="auto", time1=time1, time2=time2, fase_torneio="Grupos"
+                        )
                         placares[resultado.vencedor] += 3
                         resultados.append(resultado)
 
                     elif escolha == 2:
                         if time1 in times and time2 in times:
-                            resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio="Grupos")
+                            resultado = jogar_partida(
+                                modo="manual",
+                                time1=time1,
+                                time2=time2,
+                                fase_torneio="Grupos",
+                            )
                             placares[resultado.vencedor] += 3
                             resultados.append(resultado)
                         else:
                             print("Times inválidos!")
-        
+
         # Classificação por pontos
         grupo_ordenado = sorted(placares.items(), key=lambda x: -x[1])
         classificados.extend([time for time, _ in grupo_ordenado[:num_classificados]])
-    
+
     return classificados, resultados
 
-def fase_double_elimination(times: List[str], resultados: List[dict]) -> tuple[List[str], List[dict]]:
-    
+
+def fase_double_elimination(
+    times: List[str], resultados: List[dict]
+) -> tuple[List[str], List[dict]]:
     """Executa uma chave de eliminação dupla."""
     vencedores = []
     perdedores = []
@@ -340,7 +406,9 @@ def fase_double_elimination(times: List[str], resultados: List[dict]) -> tuple[L
             if i + 1 < len(times):
                 time1 = times[i]
                 time2 = times[i + 1]
-                resultado = realizar_jogo_dbelim(time1, time2, rodada, "vencedores", resultados)
+                resultado = realizar_jogo_dbelim(
+                    time1, time2, rodada, "vencedores", resultados
+                )
                 resultados.append(resultado)
                 novos_vencedores.append(resultado.vencedor)
                 novos_perdedores.append(resultado.perdedor)
@@ -352,7 +420,9 @@ def fase_double_elimination(times: List[str], resultados: List[dict]) -> tuple[L
                 if i + 1 < len(perdedores):
                     time1 = perdedores[i]
                     time2 = perdedores[i + 1]
-                    resultado = realizar_jogo_dbelim(time1, time2, rodada, "vencedores", resultados)
+                    resultado = realizar_jogo_dbelim(
+                        time1, time2, rodada, "vencedores", resultados
+                    )
                     resultados.append(resultado)
                     novos_perdedores_chave.append(resultado.vencedor)
 
@@ -371,69 +441,105 @@ def fase_double_elimination(times: List[str], resultados: List[dict]) -> tuple[L
         print(perdedores)
         print("\n--- Final Lower ---")
 
-        resultado = realizar_jogo_dbelim(perdedores[0], perdedores[1], rodada, "vencedores", resultados)
+        resultado = realizar_jogo_dbelim(
+            perdedores[0], perdedores[1], rodada, "vencedores", resultados
+        )
         resultados.append(resultado)
 
         print("\n--- Final ---")
-        resultado = realizar_jogo_dbelim(vencedores[0], resultado.vencedor, rodada, "vencedores", resultados)
+        resultado = realizar_jogo_dbelim(
+            vencedores[0], resultado.vencedor, rodada, "vencedores", resultados
+        )
         resultados.append(resultado)
-        
+
         return resultado.vencedor, resultados
-    
+
     else:
         return vencedores, resultados
 
-def fase_mata_mata(times: List[str], resultados: List[Dict]) -> tuple:
+
+def fase_mata_mata(
+    times: List[str], resultados: List[Dict], time_usuario: str = None
+) -> tuple:
     """Executa a fase eliminatória do torneio.
-    
+
+    Apenas as partidas em que ``time_usuario`` está envolvido são interativas
+    (o jogador escolhe o modo de partida). Todas as demais partidas — entre
+    times de terceiros — são sempre auto-simuladas, sem nenhuma pergunta ou
+    chamada a ``input()``, já que o jogador não tem como influenciar jogos
+    dos quais não participa.
+
     Args:
         times: Lista de times classificados
         resultados: Lista para armazenar resultados
-    
+        time_usuario: Nome do time controlado pelo jogador. Se None, todas
+            as partidas são tratadas como de terceiros (100% automáticas).
+
     Returns:
         Tuple: (Lista com campeão, Resultados atualizados)
-    
+
     Raises:
         ValueError: Se número de times não for potência de 2
     """
-    if (len(times) & (len(times)-1)) != 0:
+    if (len(times) & (len(times) - 1)) != 0:
         raise ValueError("Número de times deve ser potência de 2 para mata-mata")
-    
+
     fases = {2: "Final", 4: "Semifinal", 8: "Quartas", 16: "Oitavas"}
-    
+
     while len(times) > 1:
         fase_atual = fases.get(len(times), f"Fase com {len(times)} times")
         print(f"\n{fase_atual}:")
-        
+
         novos_times = []
         random.shuffle(times)
         for i in range(0, len(times), 2):
-            time1, time2 = times[i], times[i+1]
+            time1, time2 = times[i], times[i + 1]
             print(f"\nJogo entre: {time1} e {time2}!\n")
-            print("Modos de partida")
-            print("1. Partida Rápida (Aleatória)")
-            print("2. Partida Personalizada")
-            escolha = obter_opcao_numerica(1, 2)
 
-            if escolha == 1:
-                resultado = jogar_partida(modo='auto', time1=time1, time2=time2, fase_torneio=fase_atual)
+            jogo_do_usuario = time_usuario is not None and time_usuario in (
+                time1,
+                time2,
+            )
 
-            elif escolha == 2:
-                if len(times) >= 2:
-                    if time1 in times and time2 in times:
-                        resultado = jogar_partida(modo='manual', time1=time1, time2=time2, fase_torneio=fase_atual)
-                    else:
-                        print("Times inválidos!")
-                else:
-                    print("Necessário pelo menos 2 times registrados!")
+            if jogo_do_usuario:
+                print("Modos de partida")
+                print("1. Partida Rápida (Aleatória)")
+                print("2. Partida Personalizada")
+                escolha = obter_opcao_numerica(1, 2)
+
+                modo = "auto" if escolha == 1 else "manual"
+                resultado = jogar_partida(
+                    modo=modo, time1=time1, time2=time2, fase_torneio=fase_atual
+                )
+
+                if resultado is None:
+                    print(
+                        "⚠️ Não foi possível concluir a partida manualmente, simulando automaticamente..."
+                    )
+                    vencedor_partida, perdedor_partida, resultado = (
+                        simular_partida_auto(time1, time2, fase_atual)
+                    )
+                    resultado.vencedor = vencedor_partida
+                    resultado.perdedor = perdedor_partida
+            else:
+                # Partida de terceiros: sempre auto-simulada, sem nenhuma interação do jogador
+                print(
+                    "🤖 Partida entre times de terceiros — simulando automaticamente..."
+                )
+                vencedor_partida, perdedor_partida, resultado = simular_partida_auto(
+                    time1, time2, fase_atual
+                )
+                resultado.vencedor = vencedor_partida
+                resultado.perdedor = perdedor_partida
 
             resultados.append(resultado)
             novos_times.append(resultado.vencedor)
             print(f"{time1} vs {time2} → {resultado.vencedor}")
-        
+
         times = novos_times
-    
+
     return times, resultados
+
 
 def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> None:
     """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa."""
@@ -467,7 +573,7 @@ def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> No
                         "placar_time1": placar_time1,
                         "placar_time2": placar_time2,
                         "mapas": nome_mapa,
-                        "fase": fase
+                        "fase": fase,
                     }
 
                     linhas_csv.append(linha)
@@ -475,10 +581,21 @@ def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> No
                     print(f"Formato inválido para o mapa: {mapa_str}")
 
         # Escreve os dados no arquivo CSV
-        with open(f"{nome_torneio}_resultados.csv", "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=[
-                "partida_id", "time1", "time2", "placar_time1", "placar_time2", "mapas", "fase"
-            ])
+        with open(
+            f"{nome_torneio}_resultados.csv", "w", newline="", encoding="utf-8"
+        ) as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=[
+                    "partida_id",
+                    "time1",
+                    "time2",
+                    "placar_time1",
+                    "placar_time2",
+                    "mapas",
+                    "fase",
+                ],
+            )
             writer.writeheader()
             writer.writerows(linhas_csv)
 
@@ -486,6 +603,7 @@ def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> No
 
     except Exception as e:
         print(f"Erro ao salvar resultados: {str(e)}")
+
 
 def salvar_estatisticas_torneio(resultados_partidas, ranking_times, nome_torneio):
     """
@@ -501,8 +619,16 @@ def salvar_estatisticas_torneio(resultados_partidas, ranking_times, nome_torneio
             # Considera vencedor da partida como quem ganhou mais mapas
             v_time1 = sum(1 for m in partida.mapas if m.placar_time1 > m.placar_time2)
             v_time2 = sum(1 for m in partida.mapas if m.placar_time2 > m.placar_time1)
-            vencedor = partida.mapas[0].time_ct if v_time1 > v_time2 else partida.mapas[0].time_tr
-            perdedor = partida.mapas[0].time_tr if vencedor == partida.mapas[0].time_ct else partida.mapas[0].time_ct
+            vencedor = (
+                partida.mapas[0].time_ct
+                if v_time1 > v_time2
+                else partida.mapas[0].time_tr
+            )
+            perdedor = (
+                partida.mapas[0].time_tr
+                if vencedor == partida.mapas[0].time_ct
+                else partida.mapas[0].time_ct
+            )
             vitorias_times[vencedor] += 1
             derrotas_times[perdedor] += 1
 
@@ -521,34 +647,39 @@ def salvar_estatisticas_torneio(resultados_partidas, ranking_times, nome_torneio
                 continue
 
             for jogador in mapa.estatisticas_jogadores:
-                stats_mapa = jogador["estatisticas"]["mapas"].get(mapa.mapa, {"kills":0,"deaths":0, "rounds":0})
+                stats_mapa = jogador["estatisticas"]["mapas"].get(
+                    mapa.mapa, {"kills": 0, "deaths": 0, "rounds": 0}
+                )
                 kills = stats_mapa.get("kills", 0)
                 deaths = stats_mapa.get("deaths", 0)
                 rounds = stats_mapa.get("rounds", 0)
 
                 time_jogador = jogador["time"]
-                time_oponente = mapa.time_tr if time_jogador == mapa.time_ct else mapa.time_ct
+                time_oponente = (
+                    mapa.time_tr if time_jogador == mapa.time_ct else mapa.time_ct
+                )
 
-                estatisticas_jogadores.append({
-                    "TorneioPartidaID": i,
-                    "Fase": mapa.fase,
-                    "Mapa": mapa.mapa,
-                    "TimeCT": mapa.time_ct,
-                    "TimeTR": mapa.time_tr,
-                    "Oponente": time_oponente,
-                    "PlacarFinal": f"{mapa.placar_time1}-{mapa.placar_time2}",
-                    "Jogador": jogador["nome"],
-                    "Time": jogador["time"],
-                    "Kills": kills,
-                    "Deaths": deaths,
-                    "K/D": round(kills / max(1, deaths), 2),
-                    "Rounds": rounds,
-                    "KPR": round(kills / max(1, rounds), 2),
-                    "DPR": round(deaths / max(1, rounds), 2),
-                    "Vitorias": vitorias_times.get(jogador["time"], 0),
-                    "Derrotas": derrotas_times.get(jogador["time"], 0)
-            })
-
+                estatisticas_jogadores.append(
+                    {
+                        "TorneioPartidaID": i,
+                        "Fase": mapa.fase,
+                        "Mapa": mapa.mapa,
+                        "TimeCT": mapa.time_ct,
+                        "TimeTR": mapa.time_tr,
+                        "Oponente": time_oponente,
+                        "PlacarFinal": f"{mapa.placar_time1}-{mapa.placar_time2}",
+                        "Jogador": jogador["nome"],
+                        "Time": jogador["time"],
+                        "Kills": kills,
+                        "Deaths": deaths,
+                        "K/D": round(kills / max(1, deaths), 2),
+                        "Rounds": rounds,
+                        "KPR": round(kills / max(1, rounds), 2),
+                        "DPR": round(deaths / max(1, rounds), 2),
+                        "Vitorias": vitorias_times.get(jogador["time"], 0),
+                        "Derrotas": derrotas_times.get(jogador["time"], 0),
+                    }
+                )
 
     # Cria o DataFrame com todas as estatísticas
     df = pd.DataFrame(estatisticas_jogadores)
@@ -559,16 +690,34 @@ def salvar_estatisticas_torneio(resultados_partidas, ranking_times, nome_torneio
 
     # Reorganiza colunas
     colunas_ordenadas = [
-        "TorneioPartidaID", "Fase", "Mapa", "TimeCT", "TimeTR", "Oponente", "PlacarFinal",
-        "Jogador", "Time", "Kills", "Deaths", "K/D",
-        "Rounds", "KPR", "DPR", "Vitorias", "Derrotas"
+        "TorneioPartidaID",
+        "Fase",
+        "Mapa",
+        "TimeCT",
+        "TimeTR",
+        "Oponente",
+        "PlacarFinal",
+        "Jogador",
+        "Time",
+        "Kills",
+        "Deaths",
+        "K/D",
+        "Rounds",
+        "KPR",
+        "DPR",
+        "Vitorias",
+        "Derrotas",
     ]
     df = df[colunas_ordenadas]
 
     # Salva o CSV
-    df.to_csv(f"estatisticas_torneio_{nome_torneio}.csv", index=False, encoding="utf-8-sig")
+    df.to_csv(
+        f"estatisticas_torneio_{nome_torneio}.csv", index=False, encoding="utf-8-sig"
+    )
 
-    print(f"\n📁 Estatísticas dos jogadores por mapa salvas em: estatisticas_torneio_{nome_torneio}.csv")
+    print(
+        f"\n📁 Estatísticas dos jogadores por mapa salvas em: estatisticas_torneio_{nome_torneio}.csv"
+    )
     print(f"Total de registros salvos: {len(df)}")
 
     # Depois de salvar o CSV detalhado
@@ -576,7 +725,9 @@ def salvar_estatisticas_torneio(resultados_partidas, ranking_times, nome_torneio
 
     return df, df_total
 
+
 import pandas as pd
+
 
 def salvar_estatisticas_gerais_jogadores(df_estatisticas, ranking_times, nome_torneio):
     """
@@ -591,16 +742,14 @@ def salvar_estatisticas_gerais_jogadores(df_estatisticas, ranking_times, nome_to
         return None
 
     # Agrupa por jogador e time, somando as métricas numéricas
-    agrupado = (
-        df_estatisticas
-        .groupby(["Jogador", "Time"], as_index=False)
-        .agg({
+    agrupado = df_estatisticas.groupby(["Jogador", "Time"], as_index=False).agg(
+        {
             "Kills": "sum",
             "Deaths": "sum",
             "Rounds": "sum",
             "Vitorias": "max",  # mesma para todos os mapas
-            "Derrotas": "max"
-        })
+            "Derrotas": "max",
+        }
     )
 
     # Calcula métricas derivadas
@@ -610,33 +759,54 @@ def salvar_estatisticas_gerais_jogadores(df_estatisticas, ranking_times, nome_to
 
     # Adiciona ranking do time (1º, 2º, etc.)
     ranking_dict = {time: pos + 1 for pos, time in enumerate(ranking_times)}
-    agrupado["RankingTime"] = agrupado["Time"].map(ranking_dict).fillna(len(ranking_dict) + 1).astype(int)
+    agrupado["RankingTime"] = (
+        agrupado["Time"].map(ranking_dict).fillna(len(ranking_dict) + 1).astype(int)
+    )
 
     # Reorganiza colunas
     colunas_ordenadas = [
-        "Jogador", "Time", "Kills", "Deaths", "K/D",
-        "Rounds", "KPR", "DPR", "Vitorias", "Derrotas", "RankingTime"
+        "Jogador",
+        "Time",
+        "Kills",
+        "Deaths",
+        "K/D",
+        "Rounds",
+        "KPR",
+        "DPR",
+        "Vitorias",
+        "Derrotas",
+        "RankingTime",
     ]
-    agrupado = agrupado[colunas_ordenadas].sort_values(by=["RankingTime", "K/D"], ascending=[True, False])
+    agrupado = agrupado[colunas_ordenadas].sort_values(
+        by=["RankingTime", "K/D"], ascending=[True, False]
+    )
 
     # Salva o CSV
-    agrupado.to_csv(f"estatisticas_gerais_jogadores_{nome_torneio}", index=False, encoding="utf-8-sig")
+    agrupado.to_csv(
+        f"estatisticas_gerais_jogadores_{nome_torneio}",
+        index=False,
+        encoding="utf-8-sig",
+    )
 
-    print(f"\n📊 Estatísticas gerais dos jogadores salvas em: estatisticas_gerais_jogadores_{nome_torneio}.csv")
+    print(
+        f"\n📊 Estatísticas gerais dos jogadores salvas em: estatisticas_gerais_jogadores_{nome_torneio}.csv"
+    )
     print(f"Total de jogadores salvos: {len(agrupado)}")
 
     return agrupado
+
 
 def determinar_numero_evps(num_jogadores):
     """Determina quantos EVPs serão premiados com base no total de jogadores."""
     if num_jogadores <= 20:  # Ex: 4 times
         return 2
-    elif num_jogadores <= 40: # Ex: 8 times
+    elif num_jogadores <= 40:  # Ex: 8 times
         return 3
-    elif num_jogadores <= 80: # Ex: 16 times
+    elif num_jogadores <= 80:  # Ex: 16 times
         return 5
-    else: # Para torneios maiores
-        return 6 # Um valor padrão para mais de 80 jogadores
+    else:  # Para torneios maiores
+        return 6  # Um valor padrão para mais de 80 jogadores
+
 
 def calcular_mvp_e_evps(df_total):
     """
@@ -653,16 +823,16 @@ def calcular_mvp_e_evps(df_total):
     pesos_mvp = {
         "K/D": 0.35,
         "KPR": 0.25,
-        "RankingTime": 0.30, # Peso alto para a vitória
-        "Vitorias": 0.10
+        "RankingTime": 0.30,  # Peso alto para a vitória
+        "Vitorias": 0.10,
     }
 
     # Pesos para EVP (foco maior em desempenho individual)
     pesos_evp = {
-        "K/D": 0.50,         # Peso maior para o K/D
-        "KPR": 0.30,         # Peso maior para o KPR
-        "RankingTime": 0.15, # Peso reduzido para o sucesso do time
-        "Vitorias": 0.10
+        "K/D": 0.50,  # Peso maior para o K/D
+        "KPR": 0.30,  # Peso maior para o KPR
+        "RankingTime": 0.15,  # Peso reduzido para o sucesso do time
+        "Vitorias": 0.10,
     }
 
     df_calculo = df_total.copy()
@@ -673,29 +843,32 @@ def calcular_mvp_e_evps(df_total):
         min_val = df_calculo[metrica].min()
         max_val = df_calculo[metrica].max()
         if (max_val - min_val) > 0:
-            df_calculo[f"{metrica}_norm"] = (df_calculo[metrica] - min_val) / (max_val - min_val)
+            df_calculo[f"{metrica}_norm"] = (df_calculo[metrica] - min_val) / (
+                max_val - min_val
+            )
         else:
             df_calculo[f"{metrica}_norm"] = 0.5
-    
+
     # Inverter o ranking normalizado (1º lugar = pontuação alta)
     df_calculo["RankingTime_norm"] = 1 - df_calculo["RankingTime_norm"]
 
     # Calcular os dois Scores
     df_calculo["MVP_Score"] = (
-        df_calculo["K/D_norm"] * pesos_mvp["K/D"] +
-        df_calculo["KPR_norm"] * pesos_mvp["KPR"] +
-        df_calculo["RankingTime_norm"] * pesos_mvp["RankingTime"] +
-        df_calculo["Vitorias_norm"] * pesos_mvp["Vitorias"]
+        df_calculo["K/D_norm"] * pesos_mvp["K/D"]
+        + df_calculo["KPR_norm"] * pesos_mvp["KPR"]
+        + df_calculo["RankingTime_norm"] * pesos_mvp["RankingTime"]
+        + df_calculo["Vitorias_norm"] * pesos_mvp["Vitorias"]
     )
-    
+
     df_calculo["EVP_Score"] = (
-        df_calculo["K/D_norm"] * pesos_evp["K/D"] +
-        df_calculo["KPR_norm"] * pesos_evp["KPR"] +
-        df_calculo["RankingTime_norm"] * pesos_evp["RankingTime"] +
-        df_calculo["Vitorias_norm"] * pesos_evp["Vitorias"]
+        df_calculo["K/D_norm"] * pesos_evp["K/D"]
+        + df_calculo["KPR_norm"] * pesos_evp["KPR"]
+        + df_calculo["RankingTime_norm"] * pesos_evp["RankingTime"]
+        + df_calculo["Vitorias_norm"] * pesos_evp["Vitorias"]
     )
 
     return df_calculo
+
 
 def mostrar_historico_partidas(lista_de_partidas):
     """
@@ -712,18 +885,20 @@ def mostrar_historico_partidas(lista_de_partidas):
 
     # 1. Definir a ordem cronológica correta das fases
     ordem_fases = ["Oitavas de Final", "Quartas de Final", "Semifinal", "Final"]
-    
+
     # Mapeia cada fase para um número para facilitar a ordenação
     fase_mapa_ordem = {fase: i for i, fase in enumerate(ordem_fases)}
 
     # 2. Ordenar a lista de partidas usando o mapa de ordem
     # Usamos .get(p.fase, 99) para que fases não listadas (ex: "Rodada 1") não quebrem o código
-    partidas_ordenadas = sorted(lista_de_partidas, key=lambda p: fase_mapa_ordem.get(p.fase, 99))
+    partidas_ordenadas = sorted(
+        lista_de_partidas, key=lambda p: fase_mapa_ordem.get(p.fase, 99)
+    )
 
     # 3. Iterar pela lista ordenada e exibir os resultados
     for partida in partidas_ordenadas:
         # A 'partida' aqui é um objeto que contém uma lista de mapas (mesmo que seja só 1)
-        if not hasattr(partida, 'mapas') or not partida.mapas:
+        if not hasattr(partida, "mapas") or not partida.mapas:
             continue
 
         # Pega as informações gerais da partida a partir do primeiro mapa
@@ -732,20 +907,29 @@ def mostrar_historico_partidas(lista_de_partidas):
         time2 = primeiro_mapa.time_tr
 
         # Calcula o placar da série (contando vitórias de mapa)
-        vitorias_time1 = sum(1 for m in partida.mapas if m.placar_time1 > m.placar_time2)
+        vitorias_time1 = sum(
+            1 for m in partida.mapas if m.placar_time1 > m.placar_time2
+        )
         vitorias_time2 = len(partida.mapas) - vitorias_time1
 
         # Formata o resultado final da série
         if vitorias_time1 > vitorias_time2:
-            resultado_final = f"Resultado: **{time1}** {vitorias_time1} - {vitorias_time2} {time2}"
+            resultado_final = (
+                f"Resultado: **{time1}** {vitorias_time1} - {vitorias_time2} {time2}"
+            )
         else:
-            resultado_final = f"Resultado: {time1} {vitorias_time1} - {vitorias_time2} **{time2}**"
-        
+            resultado_final = (
+                f"Resultado: {time1} {vitorias_time1} - {vitorias_time2} **{time2}**"
+            )
+
         # Imprime o bloco de informações da partida
         print(f"--- {partida.fase}: {time1} vs {time2} ---")
         for mapa in partida.mapas:
-            print(f"  - {mapa.mapa}: {mapa.time_ct} {mapa.placar_time1}-{mapa.placar_time2} {mapa.time_tr}")
+            print(
+                f"  - {mapa.mapa}: {mapa.time_ct} {mapa.placar_time1}-{mapa.placar_time2} {mapa.time_tr}"
+            )
         print(f"➡️  {resultado_final}\n")
+
 
 def mostrar_resumo_torneio(df, df_total):
     """
@@ -765,58 +949,73 @@ def mostrar_resumo_torneio(df, df_total):
 
     # Calcular as pontuações de MVP e EVP
     df_premiacao = calcular_mvp_e_evps(df_total)
-    
+
     if df_premiacao is None:
         return
 
     # ---------- MVP DO TORNEIO ----------
     df_premiacao_mvp = df_premiacao.sort_values(by="MVP_Score", ascending=False)
     mvp = df_premiacao_mvp.iloc[0]
-    
+
     print("\n\n=============================================")
     print(f"🏅 O MVP DO TORNEIO É: {mvp['Jogador']} ({mvp['Time']})")
     print("=============================================\n")
-    
+
     print("🏆 Top 5 Candidatos a MVP (baseado no MVP Score):\n")
-    print(df_premiacao_mvp[[
-        "Jogador", "Time", "K/D", "RankingTime", "MVP_Score"
-    ]].head(5).to_string(index=False))
+    print(
+        df_premiacao_mvp[["Jogador", "Time", "K/D", "RankingTime", "MVP_Score"]]
+        .head(5)
+        .to_string(index=False)
+    )
 
     # ---------- EVPs DO TORNEIO ----------
     num_jogadores = len(df_total)
     num_evps = determinar_numero_evps(num_jogadores)
-    
+
     print(f"\n\n=============================================")
     print(f"🌟 EVPs DO TORNEIO ({num_evps} jogadores)")
     print("=============================================\n")
 
     # Ordenar pelo score de EVP
     df_premiacao_evp = df_premiacao.sort_values(by="EVP_Score", ascending=False)
-    
+
     # Pegar os jogadores que não são o #1 da lista de EVP
     # Isso garante que mesmo que o MVP tenha o maior EVP score, ele não apareça aqui.
-    evps = df_premiacao_evp.iloc[1:num_evps + 1]
+    evps = df_premiacao_evp.iloc[1 : num_evps + 1]
 
     print(f"Jogadores com desempenho individual excepcional (baseado no EVP Score):\n")
-    print(evps[[
-        "Jogador", "Time", "K/D", "RankingTime", "EVP_Score"
-    ]].to_string(index=False))
+    print(
+        evps[["Jogador", "Time", "K/D", "RankingTime", "EVP_Score"]].to_string(
+            index=False
+        )
+    )
 
     # ---------- TOP 10 JOGADORES (DESEMPENHO TOTAL) ----------
     print("\n💥 Top 10 Jogadores do Torneio (por K/D total):\n")
 
     top10_total = (
-        df_total
-        .sort_values(by=["K/D", "KPR"], ascending=[False, False])
+        df_total.sort_values(by=["K/D", "KPR"], ascending=[False, False])
         .head(10)
         .reset_index(drop=True)
     )
 
-    print(top10_total[[
-        "Jogador", "Time", "Kills", "Deaths", "K/D",
-        "Rounds", "KPR", "DPR", "Vitorias", "Derrotas", "RankingTime"
-    ]].to_string(index=False))
-
+    print(
+        top10_total[
+            [
+                "Jogador",
+                "Time",
+                "Kills",
+                "Deaths",
+                "K/D",
+                "Rounds",
+                "KPR",
+                "DPR",
+                "Vitorias",
+                "Derrotas",
+                "RankingTime",
+            ]
+        ].to_string(index=False)
+    )
 
     # ---------- TOP 10 DESEMPENHOS INDIVIDUAIS EM MAPAS ----------
     print("\n🔥 Top 10 Melhores Desempenhos em Mapas (por K/D no mapa):\n")
@@ -827,12 +1026,27 @@ def mostrar_resumo_torneio(df, df_total):
         .reset_index(drop=True)
     )
 
-    print(top10_mapas[[
-        "Jogador", "Time", "Oponente","Fase", "Mapa", "PlacarFinal",
-        "Kills", "Deaths", "K/D", "Rounds", "KPR", "DPR"
-    ]].to_string(index=False))
+    print(
+        top10_mapas[
+            [
+                "Jogador",
+                "Time",
+                "Oponente",
+                "Fase",
+                "Mapa",
+                "PlacarFinal",
+                "Kills",
+                "Deaths",
+                "K/D",
+                "Rounds",
+                "KPR",
+                "DPR",
+            ]
+        ].to_string(index=False)
+    )
 
     return top10_total, top10_mapas
+
 
 def criar_torneio(times: List[str]) -> None:
     """Fluxo principal para criação e execução do torneio."""
@@ -843,56 +1057,54 @@ def criar_torneio(times: List[str]) -> None:
     try:
         nome_torneio = input("Nome do torneio: ").strip()
         num_times = validar_input_numerico(
-            "Número de participantes: ", 
-            min_val=2, 
-            max_val=len(times)
+            "Número de participantes: ", min_val=2, max_val=len(times)
         )
-        
+
         times_selecionados = selecionar_times(times, num_times)
         formato = validar_input_numerico(
             "Formato (1-Grupos / 2-Mata-mata / 3-Double Elimination): ",
             min_val=1,
-            max_val=3
+            max_val=3,
         )
 
         resultados = []
-        
+
         if formato == 1:
             num_grupos = validar_input_numerico(
-                "Número de grupos: ",
-                min_val=1,
-                max_val=len(times_selecionados)
+                "Número de grupos: ", min_val=1, max_val=len(times_selecionados)
             )
             num_grupos = validar_num_grupos(times_selecionados, num_grupos)
-            
+
             num_classificados = validar_input_numerico(
                 "Classificados por grupo: ",
                 min_val=1,
-                max_val=len(times_selecionados)//num_grupos
+                max_val=len(times_selecionados) // num_grupos,
             )
-            
-            ida_e_volta = validar_input_numerico(
-                "Jogos de ida e volta? (1-Sim / 2-Não): ",
-                min_val=1,
-                max_val=2
-            ) == 1
-            
+
+            ida_e_volta = (
+                validar_input_numerico(
+                    "Jogos de ida e volta? (1-Sim / 2-Não): ", min_val=1, max_val=2
+                )
+                == 1
+            )
+
             classificados, resultados = fase_grupos(
-                times_selecionados, 
-                num_grupos, 
-                num_classificados, 
-                ida_e_volta
+                times_selecionados, num_grupos, num_classificados, ida_e_volta
             )
-            
+
             campeao, resultados = fase_mata_mata(classificados, resultados)
             print(f"\n🏆 Campeão: {campeao[0]} 🏆")
             salvar_resultados_times_csv(nome_torneio, resultados)
 
         elif formato == 3:
-            campeao, resultados = fase_double_elimination(times_selecionados, resultados)
+            campeao, resultados = fase_double_elimination(
+                times_selecionados, resultados
+            )
             print(f"\n🏆 Campeão: {campeao} 🏆")
             salvar_resultados_times_csv(nome_torneio, resultados)
-            print("CRIAR SALVAR RESULTADOS CSV PARA DOUBLE ELIMINATION, TESTAR COM MAIS QUE 4 TIMES E CRIAR FORMATO SUIÇO")
+            print(
+                "CRIAR SALVAR RESULTADOS CSV PARA DOUBLE ELIMINATION, TESTAR COM MAIS QUE 4 TIMES E CRIAR FORMATO SUIÇO"
+            )
 
         else:
             classificados = times_selecionados

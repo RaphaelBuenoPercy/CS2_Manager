@@ -3,9 +3,8 @@ import random
 import math
 from dataclasses import dataclass
 from typing import Any, List, Tuple, Dict, Literal
-
 from colorama import Fore, Style
-
+from collections import defaultdict
 import pandas as pd
 from estrategias_deepseek import estrategias_por_mapa, estrategia_resultado
 from funcoes_prejogo_deepseek import times, vetar_e_escolher_mapas, calcular_over_medio
@@ -647,10 +646,6 @@ def mostrar_estatisticas_finais(
                     f"K: {cor}{k:<3}{Style.RESET_ALL} "
                     f"D: {d:<3}"
                 )
-
-
-from collections import defaultdict
-import pandas as pd
 
 
 def simular_partidas_em_lote_auto(

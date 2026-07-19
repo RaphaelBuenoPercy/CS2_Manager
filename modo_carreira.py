@@ -111,7 +111,11 @@ def jogar_torneio_carreira(dados):
     print(f"\nTimes participantes: {', '.join(times_disponiveis)}")
 
     # Executa o torneio usando suas funções já prontas
-    vencedor, resultados = fase_mata_mata(times_disponiveis, [])
+    # Apenas as partidas do time do jogador são interativas; as demais são
+    # sempre auto-simuladas (o jogador não pode influenciar jogos de terceiros).
+    vencedor, resultados = fase_mata_mata(
+        times_disponiveis, [], time_usuario=dados["time_usuario"]
+    )
 
     # === Estatísticas ===
     print("\n📊 Gerando estatísticas do torneio...")
@@ -150,6 +154,16 @@ def jogar_torneio_carreira(dados):
     print("\n=== ESTATÍSTICAS DO TORNEIO ===")
     print(df_total)
     input("\nPressione ENTER para continuar...")
+
+
+def mostrar_historico(dados):
+    print("\n=== HISTÓRICO DE TORNEIOS ===")
+    if not dados["historico"]:
+        print("Nenhum torneio jogado ainda.\n")
+        return
+    for h in dados["historico"]:
+        print(f"{h['ano']}/{h['mes']:02d} - {h['torneio']}: {h['posicao']}º lugar")
+    print("==============================\n")
 
 
 def mostrar_estatisticas_gerais(dados):

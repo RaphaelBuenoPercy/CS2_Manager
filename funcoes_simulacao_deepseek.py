@@ -554,12 +554,20 @@ def decidir_vencedor_round(
 
 # dicionário de times carregados do CSV
 def carregar_times_config(caminho_csv="times.csv"):
+    """Lê o times.csv (sem cabeçalho, colunas fixas: nome,emoji,cor) e monta
+    a configuração visual de cada time. Usa csv.reader (não DictReader) de
+    propósito: o arquivo não tem linha de cabeçalho, então usar DictReader
+    faria a primeira linha de dados virar cabeçalho e "sumir" com o primeiro
+    time da lista."""
     config = {}
     with open(caminho_csv, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            cor = getattr(Fore, row["cor"].upper(), "")
-            config[row["nome"]] = {"emoji": row["emoji"], "cor": cor}
+        reader = csv.reader(f)
+        for linha in reader:
+            if not linha or not linha[0].strip():
+                continue
+            nome, emoji, cor_nome = (linha + ["", ""])[:3]
+            cor = getattr(Fore, cor_nome.strip().upper(), "")
+            config[nome.strip()] = {"emoji": emoji.strip(), "cor": cor}
     return config
 
 

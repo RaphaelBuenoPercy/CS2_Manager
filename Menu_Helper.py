@@ -92,7 +92,11 @@ def menu_gerenciar_times():
         elif escolha == 5:
             time1 = input("Escolha o primeiro time: ")
             time2 = input("Escolha o segundo time: ")
-            qtd = input("Escolha o número de vezes que você quer simular")
+            try:
+                qtd = int(input("Escolha o número de vezes que você quer simular: "))
+            except ValueError:
+                print("Número inválido!")
+                continue
             simular_partidas_em_lote_auto(time1, time2, qtd)
 
         elif escolha == 6:

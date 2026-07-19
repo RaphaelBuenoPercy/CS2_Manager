@@ -13,19 +13,18 @@ from funcoes_prejogo_deepseek import times, listar_times
 # ===============================================================
 
 CALENDARIO_TORNEIOS = {
-    1: "IEM Los Angeles",
-    2: "Blast Atenas",
-    3: "ESL Pro League I Berlin",
-    4: "Faceit Austin",
-    5: "Blast Rivals Shangai",
-    6: "IEM Bahia",
-    7: "PGL Amsterdam Major",
-    8: "Blast Atenas",
-    9: "Thunderpick Malta",
-    10: "Starladder Beijing",
-    11: "ESL Pro League II Buenos Aires",
-    12: "IEM New Orleans",
-    13: "Faceit Madrid Major",
+    1: ["IEM Los Angeles"],
+    2: ["Blast Atenas"],
+    3: ["ESL Pro League I Berlin"],
+    4: ["Faceit Austin"],
+    5: ["Blast Rivals Shangai"],
+    6: ["IEM Bahia"],
+    7: ["PGL Amsterdam Major"],
+    8: ["Blast Atenas"],
+    9: ["Thunderpick Malta"],
+    10: ["Starladder Beijing"],
+    11: ["ESL Pro League II Buenos Aires"],
+    12: ["IEM New Orleans", "Faceit Madrid Major"],
 }
 
 ARQUIVO_SAVE = "dados_carreira.json"

@@ -1,7 +1,11 @@
 import json
 import random
 import pandas as pd
-from funcoes_torneio_deepseek import fase_mata_mata, salvar_estatisticas_torneio, mostrar_resumo_torneio
+from funcoes_torneio_deepseek import (
+    fase_mata_mata,
+    salvar_estatisticas_torneio,
+    mostrar_resumo_torneio,
+)
 from funcoes_prejogo_deepseek import times, listar_times
 
 # ===============================================================
@@ -11,17 +15,17 @@ from funcoes_prejogo_deepseek import times, listar_times
 CALENDARIO_TORNEIOS = {
     1: "IEM Los Angeles",
     2: "Blast Atenas",
-    2: "ESL Pro League I Berlin",
-    3: "Faceit Austin",
-    4: "Blast Rivals Shangai",
-    5: "IEM Bahia",
-    6: "PGL Amsterdam Major",
+    3: "ESL Pro League I Berlin",
+    4: "Faceit Austin",
+    5: "Blast Rivals Shangai",
+    6: "IEM Bahia",
+    7: "PGL Amsterdam Major",
     8: "Blast Atenas",
     9: "Thunderpick Malta",
     10: "Starladder Beijing",
-    10: "ESL Pro League II Buenos Aires",
-    11: "IEM New Orleans",
-    12: "Faceit Madrid Major",
+    11: "ESL Pro League II Buenos Aires",
+    12: "IEM New Orleans",
+    13: "Faceit Madrid Major",
 }
 
 ARQUIVO_SAVE = "dados_carreira.json"
@@ -29,6 +33,7 @@ ARQUIVO_SAVE = "dados_carreira.json"
 # ===============================================================
 # 2. FUNÇÕES DE SALVAMENTO E CARREGAMENTO
 # ===============================================================
+
 
 def salvar_progresso(dados, arquivo=ARQUIVO_SAVE):
     """Salva o estado atual da carreira no arquivo JSON."""
@@ -51,12 +56,15 @@ def carregar_progresso(arquivo=ARQUIVO_SAVE):
             "historico": [],
             "orcamento": 200000,
             "vitorias": 0,
-            "derrotas": 0
+            "derrotas": 0,
+            "estatisticas": {},
         }
+
 
 # ===============================================================
 # 3. FUNÇÕES DE PROGRESSO TEMPORAL
 # ===============================================================
+
 
 def avancar_mes(dados):
     """Avança o mês e o ano no calendário da carreira."""
@@ -78,9 +86,11 @@ def escolher_time_carreira():
             return nome
         print("Time inválido. Tente novamente.\n")
 
+
 # ===============================================================
 # 4. FUNÇÃO PRINCIPAL DE TORNEIO DO MODO CARREIRA
 # ===============================================================
+
 
 def jogar_torneio_carreira(dados):
     """Executa o torneio do mês (se houver) no modo carreira."""
@@ -111,7 +121,7 @@ def jogar_torneio_carreira(dados):
     # Converte DataFrame para JSON e adiciona ao save
     dados["estatisticas"][nome_torneio] = {
         "detalhadas": df_estat.to_dict(),
-        "resumo": df_total.to_dict()
+        "resumo": df_total.to_dict(),
     }
 
     # === Resultado final ===
@@ -127,26 +137,19 @@ def jogar_torneio_carreira(dados):
         dados["derrotas"] += 1
         print(f"📊 Seu time terminou em {posicao}º lugar.")
 
-    dados["historico"].append({
-        "ano": dados["ano_atual"],
-        "mes": mes,
-        "torneio": nome_torneio,
-        "posicao": posicao
-    })
+    dados["historico"].append(
+        {
+            "ano": dados["ano_atual"],
+            "mes": mes,
+            "torneio": nome_torneio,
+            "posicao": posicao,
+        }
+    )
 
     # ✅ Mostra estatísticas logo após o torneio
     print("\n=== ESTATÍSTICAS DO TORNEIO ===")
     print(df_total)
     input("\nPressione ENTER para continuar...")
-
-def mostrar_historico(dados):
-    print("\n=== HISTÓRICO DE TORNEIOS ===")
-    if not dados["historico"]:
-        print("Nenhum torneio jogado ainda.\n")
-        return
-    for h in dados["historico"]:
-        print(f"{h['ano']}/{h['mes']:02d} - {h['torneio']}: {h['posicao']}º lugar")
-    print("==============================\n")
 
 
 def mostrar_estatisticas_gerais(dados):
@@ -165,9 +168,11 @@ def mostrar_estatisticas_gerais(dados):
         print(detalhado_df.head(10))  # Mostra os 10 primeiros
         print("=" * 50 + "\n")
 
+
 # ===============================================================
 # 5. FUNÇÃO PARA EXIBIR O HISTÓRICO DO TIME
 # ===============================================================
+
 
 def mostrar_historico(dados):
     """Mostra todos os torneios jogados e posições alcançadas."""
@@ -183,6 +188,7 @@ def mostrar_historico(dados):
 # ===============================================================
 # 6. MENU PRINCIPAL DO MODO CARREIRA
 # ===============================================================
+
 
 def menu_carreira():
     dados = carregar_progresso()

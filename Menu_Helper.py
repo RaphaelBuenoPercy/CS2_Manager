@@ -1,16 +1,36 @@
 import random
 import pandas as pd
-from funcoes_torneio_deepseek import criar_torneio, mostrar_resumo_torneio, salvar_estatisticas_torneio, mostrar_historico_partidas, visualizar_bracket_torneio 
-from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
-from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote, simular_partida_auto
+from funcoes_torneio_deepseek import (
+    criar_torneio,
+    mostrar_resumo_torneio,
+    salvar_estatisticas_torneio,
+    mostrar_historico_partidas,
+    visualizar_bracket_torneio,
+)
+from funcoes_prejogo_deepseek import (
+    times,
+    listar_times,
+    carregar_times_csv,
+    adicionar_time,
+    calcular_overs_medios_times,
+    exibir_overs_medios_times,
+)
+from funcoes_simulacao_deepseek import (
+    jogar_partida,
+    simular_partidas_em_lote_auto,
+    simular_torneios_em_lote,
+    simular_partida_auto,
+)
 from modo_carreira import menu_carreira
+
 
 # ==================== FUNÇÕES AUXILIARES ====================
 def mostrar_titulo(texto: str):
     """Exibe títulos formatados"""
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print(f" {texto.upper()} ".center(50, "•"))
-    print("="*50 + "\n")
+    print("=" * 50 + "\n")
+
 
 def obter_opcao_numerica(min_val: int, max_val: int) -> int:
     """Valida entradas numéricas do menu"""
@@ -23,15 +43,17 @@ def obter_opcao_numerica(min_val: int, max_val: int) -> int:
         except ValueError:
             print("Erro: Entrada inválida. Digite apenas números!")
 
+
 def confirmar_acao(mensagem: str) -> bool:
     """Solicita confirmação para ações críticas"""
     resposta = input(f"{mensagem} (s/n): ").strip().lower()
-    return resposta in ['s', 'sim']
+    return resposta in ["s", "sim"]
+
 
 # ==================== SUBMENUS ====================
 def menu_gerenciar_times():
     """Submenu para gestão de times"""
-    
+
     while True:
 
         mostrar_titulo("gestão de times")
@@ -41,9 +63,9 @@ def menu_gerenciar_times():
         print("4. Calcular Overs dos Times")
         print("5. Testar Partidas em Lotes")
         print("6. Voltar ao menu principal")
-        
+
         escolha = obter_opcao_numerica(1, 6)
-        
+
         if escolha == 1:
             nome = input("Nome do novo time: ").strip()
             adicionar_time(nome)
@@ -76,6 +98,7 @@ def menu_gerenciar_times():
         elif escolha == 6:
             return
 
+
 def menu_partida():
     """Submenu de modos de partida"""
     while True:
@@ -83,13 +106,13 @@ def menu_partida():
         print("1. Partida Rápida (Aleatória)")
         print("2. Partida Personalizada")
         print("3. Voltar ao menu principal")
-        
+
         escolha = obter_opcao_numerica(1, 3)
-        
+
         if escolha == 1:
             if len(times) >= 2:
                 time1, time2 = random.sample(times, 2)
-                jogar_partida(modo='auto', time1=time1, time2=time2)
+                jogar_partida(modo="auto", time1=time1, time2=time2)
             else:
                 print("Necessário pelo menos 2 times registrados!")
         elif escolha == 2:
@@ -98,13 +121,14 @@ def menu_partida():
                 time1 = input("Nome do primeiro time: ").strip()
                 time2 = input("Nome do segundo time: ").strip()
                 if time1 in times and time2 in times:
-                    jogar_partida(modo='manual', time1=time1, time2=time2)
+                    jogar_partida(modo="manual", time1=time1, time2=time2)
                 else:
                     print("Times inválidos!")
             else:
                 print("Necessário pelo menos 2 times registrados!")
         elif escolha == 3:
             return
+
 
 def menu_torneio():
     """Submenu de torneios"""
@@ -114,9 +138,9 @@ def menu_torneio():
         print("2. Listar torneios anteriores")
         print("3. Simular torneios")
         print("4. Voltar ao menu principal")
-        
+
         escolha = obter_opcao_numerica(1, 4)
-        
+
         if escolha == 1:
             criar_torneio(times)
         elif escolha == 2:
@@ -126,6 +150,7 @@ def menu_torneio():
             menu_simular_torneio()
             return
 
+
 def menu_simular_torneio():
     if len(times) < 4:
         print("Necessário pelo menos 4 times registrados!")
@@ -134,7 +159,7 @@ def menu_simular_torneio():
     listar_times()
     print("\n=== SIMULAÇÃO DE TORNEIO MATA-MATA ===")
     print("Escolha 4 ou 8 times para o torneio.")
-    
+
     while True:
         try:
             qtd = int(input("Quantos times deseja incluir (4, 8, 16)? ").strip())
@@ -169,33 +194,42 @@ def menu_simular_torneio():
 
     visualizar_bracket_torneio(resultados["partidas"])
 
-    df, df_total = salvar_estatisticas_torneio(resultados["partidas"], resultados["ranking"], nome_torneio)
-    
+    df, df_total = salvar_estatisticas_torneio(
+        resultados["partidas"], resultados["ranking"], nome_torneio
+    )
+
     mostrar_historico_partidas(resultados["partidas"])
     mostrar_resumo_torneio(df, df_total)
 
     print("\n=== ESTATÍSTICAS GERAIS APÓS", n, "TORNEIOS ===")
-    print(f"{'Time':<12} | {'Campeão':<8} | {'Vice':<8} | {'Top4':<8} | {'Posição Média':<15} | {'Vitórias Médias':<16} | {'Vitórias':<10} | {'Derrotas':<10}")
+    print(
+        f"{'Time':<12} | {'Campeão':<8} | {'Vice':<8} | {'Top4':<8} | {'Posição Média':<15} | {'Vitórias Médias':<16} | {'Vitórias':<10} | {'Derrotas':<10}"
+    )
     print("-" * 110)
 
-    for time, dados in sorted(resultados["estatisticas"].items(), key=lambda x: x[1]['posicao_media']):
-        
-        print(f"{time:<12} | "
-        f"{dados['campeao']:<8} | "
-        f"{dados['vice']:<8} | "
-        f"{dados['top4']:<8} | "
-        f"{dados['posicao_media']:<15.2f} | "
-        f"{dados['vitorias_media']:<16.2f} | "
-        f"{dados['vitorias_total']:<10} | "
-        f"{dados['derrotas_total']:<10}")
+    for time, dados in sorted(
+        resultados["estatisticas"].items(), key=lambda x: x[1]["posicao_media"]
+    ):
+
+        print(
+            f"{time:<12} | "
+            f"{dados['campeao']:<8} | "
+            f"{dados['vice']:<8} | "
+            f"{dados['top4']:<8} | "
+            f"{dados['posicao_media']:<15.2f} | "
+            f"{dados['vitorias_media']:<16.2f} | "
+            f"{dados['vitorias_total']:<10} | "
+            f"{dados['derrotas_total']:<10}"
+        )
+
 
 def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
     """
     Carrega os dados dos jogadores diretamente de um arquivo CSV.
-    
+
     Args:
         caminho_do_arquivo (str): O nome do arquivo (ex: 'jogadores.csv').
-        
+
     Returns:
         pd.DataFrame: Um DataFrame com todos os jogadores carregados.
     """
@@ -205,6 +239,7 @@ def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
         print(f"Erro: O arquivo '{caminho_do_arquivo}' não foi encontrado.")
         print("Certifique-se de que o arquivo CSV está na mesma pasta que o script.")
         return None
+
 
 # ==================== MENU PRINCIPAL ====================
 def main():
@@ -227,7 +262,7 @@ def main():
         print("5. Modo Carreira")
         print("6. Sair")
 
-        escolha = obter_opcao_numerica(1, 5)
+        escolha = obter_opcao_numerica(1, 6)
 
         if escolha == 1:
             menu_gerenciar_times()
@@ -244,6 +279,7 @@ def main():
             if confirmar_acao("Tem certeza que deseja sair?"):
                 print("Saindo...")
                 break
+
 
 if __name__ == "__main__":
     main()

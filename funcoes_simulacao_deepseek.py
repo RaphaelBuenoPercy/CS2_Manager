@@ -390,7 +390,8 @@ def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
         
     jogadores = []
     for _, row in time_df.iterrows():
-        over_normalizado = row['over'] / 80.0
+        print(row['over'])
+        over_normalizado = float(row['over']) / 80.0
         
         jogadores.append({
             "nome": row['nick'],

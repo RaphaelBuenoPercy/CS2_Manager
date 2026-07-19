@@ -3,6 +3,7 @@ import pandas as pd
 from funcoes_torneio_deepseek import criar_torneio, mostrar_resumo_torneio, salvar_estatisticas_torneio, mostrar_historico_partidas, visualizar_bracket_torneio 
 from funcoes_prejogo_deepseek import times, listar_times, carregar_times_csv, adicionar_time, calcular_overs_medios_times, exibir_overs_medios_times
 from funcoes_simulacao_deepseek import jogar_partida, simular_partidas_em_lote_auto, simular_torneios_em_lote, simular_partida_auto
+from modo_carreira import menu_carreira
 
 # ==================== FUNÇÕES AUXILIARES ====================
 def mostrar_titulo(texto: str):
@@ -223,7 +224,8 @@ def main():
         print("2. Jogar Partida")
         print("3. Torneios")
         print("4. Carregar Times")
-        print("5. Sair")
+        print("5. Modo Carreira")
+        print("6. Sair")
 
         escolha = obter_opcao_numerica(1, 5)
 
@@ -237,6 +239,8 @@ def main():
             arquivo = input("Caminho do arquivo para carregar: ").strip()
             carregar_times_csv(arquivo)
         elif escolha == 5:
+            menu_carreira()
+        elif escolha == 6:
             if confirmar_acao("Tem certeza que deseja sair?"):
                 print("Saindo...")
                 break

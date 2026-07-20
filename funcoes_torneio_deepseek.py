@@ -378,9 +378,6 @@ def fase_grupos(
                         resultado = jogar_partida(
                             modo="auto", time1=time1, time2=time2, fase_torneio="Grupos"
                         )
-                        placares[resultado.vencedor] += 3
-                        resultados.append(resultado)
-
                     elif escolha == 2:
                         if time1 in times and time2 in times:
                             resultado = jogar_partida(
@@ -389,10 +386,28 @@ def fase_grupos(
                                 time2=time2,
                                 fase_torneio="Grupos",
                             )
-                            placares[resultado.vencedor] += 3
-                            resultados.append(resultado)
                         else:
                             print("Times inválidos!")
+                            continue
+                    else:
+                        continue
+
+                    if resultado is None:
+                        # jogar_partida pode retornar None (ex.: falha na
+                        # seleção de mapas). Antes o código seguinte
+                        # (resultado.vencedor) quebrava com AttributeError e
+                        # derrubava a fase de grupos inteira.
+                        print(
+                            "⚠️ Não foi possível concluir a partida manualmente, simulando automaticamente..."
+                        )
+                        vencedor_partida, perdedor_partida, resultado = (
+                            simular_partida_auto(time1, time2, "Grupos")
+                        )
+                        resultado.vencedor = vencedor_partida
+                        resultado.perdedor = perdedor_partida
+
+                    placares[resultado.vencedor] += 3
+                    resultados.append(resultado)
 
         # Classificação por pontos
         grupo_ordenado = sorted(placares.items(), key=lambda x: -x[1])

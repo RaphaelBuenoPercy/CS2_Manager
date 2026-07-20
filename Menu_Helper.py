@@ -152,6 +152,7 @@ def menu_partida():
             else:
                 print("Necessário pelo menos 2 times registrados!")
         elif escolha == 3:
+            main()
             return
 
 

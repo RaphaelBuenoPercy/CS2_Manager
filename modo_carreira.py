@@ -99,76 +99,78 @@ def jogar_torneio_carreira(dados):
         print("🕐 Nenhum torneio neste mês.")
         return
 
-    nome_torneio = CALENDARIO_TORNEIOS[mes]
-    print(f"\n🏆 Torneio do mês: {nome_torneio}")
+    # Pega a lista de torneios do mês atual
+    torneios_do_mes = CALENDARIO_TORNEIOS[mes]
 
-    # fase_mata_mata exige um número de times que seja potência de 2. Antes o
-    # código sempre fazia random.sample(times, 8) e quebrava com ValueError
-    # se houvesse menos de 8 times cadastrados.
-    if len(times) >= 8:
-        qtd_times_torneio = 8
-    elif len(times) >= 4:
-        qtd_times_torneio = 4
-    else:
-        print(
-            f"⚠️ Times insuficientes para disputar o {nome_torneio} "
-            f"(mínimo 4, há {len(times)} cadastrados). Torneio cancelado neste mês."
+    # Faz um loop para jogar todos os torneios agendados para este mês
+    for nome_torneio in torneios_do_mes:
+        print(f"\n🏆 Torneio: {nome_torneio}")
+
+        # fase_mata_mata exige um número de times que seja potência de 2.
+        if len(times) >= 8:
+            qtd_times_torneio = 8
+        elif len(times) >= 4:
+            qtd_times_torneio = 4
+        else:
+            print(
+                f"⚠️ Times insuficientes para disputar o {nome_torneio} "
+                f"(mínimo 4, há {len(times)} cadastrados). Torneio cancelado."
+            )
+            continue  # Pula para o próximo torneio (se houver)
+
+        # Sorteia os times participantes
+        times_disponiveis = random.sample(times, qtd_times_torneio)
+        if dados["time_usuario"] not in times_disponiveis:
+            times_disponiveis[0] = dados["time_usuario"]
+
+        print(f"\nTimes participantes: {', '.join(times_disponiveis)}")
+
+        # Executa o torneio usando suas funções já prontas
+        vencedor, resultados = fase_mata_mata(
+            times_disponiveis, [], time_usuario=dados["time_usuario"]
         )
-        return
 
-    # Sorteia os times participantes
-    times_disponiveis = random.sample(times, qtd_times_torneio)
-    if dados["time_usuario"] not in times_disponiveis:
-        times_disponiveis[0] = dados["time_usuario"]
+        # === Estatísticas ===
+        print("\n📊 Gerando estatísticas do torneio...")
+        df_estat, df_total = salvar_estatisticas_torneio(resultados, {}, nome_torneio)
+        mostrar_resumo_torneio(df_estat, df_total)
 
-    print(f"\nTimes participantes: {', '.join(times_disponiveis)}")
-
-    # Executa o torneio usando suas funções já prontas
-    # Apenas as partidas do time do jogador são interativas; as demais são
-    # sempre auto-simuladas (o jogador não pode influenciar jogos de terceiros).
-    vencedor, resultados = fase_mata_mata(
-        times_disponiveis, [], time_usuario=dados["time_usuario"]
-    )
-
-    # === Estatísticas ===
-    print("\n📊 Gerando estatísticas do torneio...")
-    df_estat, df_total = salvar_estatisticas_torneio(resultados, {}, nome_torneio)
-    mostrar_resumo_torneio(df_estat, df_total)
-
-    # Converte DataFrame para JSON e adiciona ao save
-    dados["estatisticas"][nome_torneio] = {
-        "detalhadas": df_estat.to_dict(),
-        "resumo": df_total.to_dict(),
-    }
-
-    # === Resultado final ===
-    if isinstance(vencedor, list):
-        vencedor = vencedor[0]
-
-    posicao = (
-        1 if vencedor == dados["time_usuario"] else random.randint(2, qtd_times_torneio)
-    )
-    if posicao == 1:
-        dados["orcamento"] += 50000
-        dados["vitorias"] += 1
-        print(f"🎉 Seu time foi CAMPEÃO do {nome_torneio}!")
-    else:
-        dados["derrotas"] += 1
-        print(f"📊 Seu time terminou em {posicao}º lugar.")
-
-    dados["historico"].append(
-        {
-            "ano": dados["ano_atual"],
-            "mes": mes,
-            "torneio": nome_torneio,
-            "posicao": posicao,
+        # Converte DataFrame para JSON e adiciona ao save
+        dados["estatisticas"][nome_torneio] = {
+            "detalhadas": df_estat.to_dict(),
+            "resumo": df_total.to_dict(),
         }
-    )
 
-    # ✅ Mostra estatísticas logo após o torneio
-    print("\n=== ESTATÍSTICAS DO TORNEIO ===")
-    print(df_total)
-    input("\nPressione ENTER para continuar...")
+        # === Resultado final ===
+        if isinstance(vencedor, list):
+            vencedor = vencedor[0]
+
+        posicao = (
+            1
+            if vencedor == dados["time_usuario"]
+            else random.randint(2, qtd_times_torneio)
+        )
+        if posicao == 1:
+            dados["orcamento"] += 50000
+            dados["vitorias"] += 1
+            print(f"🎉 Seu time foi CAMPEÃO do {nome_torneio}!")
+        else:
+            dados["derrotas"] += 1
+            print(f"📊 Seu time terminou em {posicao}º lugar.")
+
+        dados["historico"].append(
+            {
+                "ano": dados["ano_atual"],
+                "mes": mes,
+                "torneio": nome_torneio,
+                "posicao": posicao,
+            }
+        )
+
+        # ✅ Mostra estatísticas logo após o torneio
+        print("\n=== ESTATÍSTICAS DO TORNEIO ===")
+        print(df_total)
+        input("\nPressione ENTER para continuar...")
 
 
 def mostrar_estatisticas_gerais(dados):

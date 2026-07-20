@@ -1,0 +1,14 @@
+2026-07-19 20:29:49,985 [ERROR] funcoes_simulacao_deepseek: Erro fatal na partida entre Marshbone e Mibr
+Traceback (most recent call last):
+  File "C:\Arquivos Rapha\brincandogpt\Deepseek\funcoes_simulacao_deepseek.py", line 384, in jogar_partida
+    jogadores_time1 = obter_jogadores(time1, jogadores_Dataframe)
+  File "C:\Arquivos Rapha\brincandogpt\Deepseek\gerador_kills_deaths.py", line 57, in obter_jogadores
+    raise ValueError(f"Time '{nome_time}' não encontrado no CSV.")
+ValueError: Time 'Marshbone' não encontrado no CSV.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Arquivos Rapha\brincandogpt\Deepseek\funcoes_simulacao_deepseek.py", line 388, in jogar_partida
+    raise RuntimeError(f"Seleção de times inválida: {str(e)}")
+RuntimeError: Seleção de times inválida: Time 'Marshbone' não encontrado no CSV.

@@ -2,6 +2,7 @@
 import csv
 import logging
 from typing import List, Dict, Optional
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,11 @@ def adicionar_time(nome: str) -> None:
         ValueError: Se nome for vazio ou duplicado
     """
     global times
-    nome = nome.strip()
+    nome = nome.strip().lower()
     if not nome:
         raise ValueError("Nome do time não pode ser vazio")
 
-    if nome in times:
+    if any(t.lower() == nome.lower() for t in times):
         raise ValueError(f"Time '{nome}' já está registrado")
 
     times.append(nome)
@@ -55,7 +56,7 @@ def carregar_times_csv(arquivo: str = "times.csv") -> None:
             reader = csv.reader(csvfile)
             for linha in reader:
                 if linha and linha[0].strip():
-                    nome = linha[0].strip()
+                    nome = linha[0].strip().lower()
                     if nome not in times and nome not in novos_times:
                         novos_times.append(nome)
 
@@ -83,7 +84,7 @@ def salvar_times_csv(arquivo: str = "times.csv") -> None:
             reader = csv.reader(csvfile)
             for linha in reader:
                 if linha and linha[0].strip():
-                    nome = linha[0].strip()
+                    nome = linha[0].strip().lower()
                     resto = (linha[1:] + ["", ""])[:2]
                     config_existente[nome] = resto
     except FileNotFoundError:
@@ -92,7 +93,7 @@ def salvar_times_csv(arquivo: str = "times.csv") -> None:
     try:
         with open(arquivo, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            for nome in times:
+            for nome.lower() in times:
                 emoji, cor = config_existente.get(nome, ["", ""])
                 writer.writerow([nome, emoji, cor])
         logger.info("Times persistidos em '%s' (%d times)", arquivo, len(times))
@@ -234,10 +235,6 @@ def vetar_e_escolher_mapas(time1: str, time2: str) -> List[str]:
         return []
 
 
-import csv
-from collections import defaultdict
-
-
 def calcular_overs_medios_times(arquivo_csv: str = "jogadores.csv") -> dict:
     """
     Calcula o over médio de todos os times com base no arquivo CSV de jogadores.
@@ -256,7 +253,7 @@ def calcular_overs_medios_times(arquivo_csv: str = "jogadores.csv") -> dict:
         with open(arquivo_csv, "r", newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for linha in reader:
-                time_nome = linha["time"].strip()
+                time_nome = linha["time"].strip().lower()
                 over = float(linha["over"])
                 # Atualiza a soma dos overs e a quantidade de jogadores do time
                 times_overs[time_nome]["soma_over"] += over

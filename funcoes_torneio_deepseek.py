@@ -173,7 +173,7 @@ def listar_times_disponiveis(times: List[str]) -> None:
     """
     print("\nTimes disponíveis:")
     for i, time in enumerate(times, 1):
-        print(f"{i}. {time}")
+        print(f"{i}. {time.lower()}")
 
 
 def validar_input_numerico(

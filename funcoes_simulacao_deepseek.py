@@ -77,9 +77,9 @@ ModoJogo = Literal["manual", "semi-auto", "auto"]
 
 
 def validar_time(nome: str) -> str:
-    if nome not in times:
-        raise ValueError(f"Time '{nome}' não registrado!")
-    return nome
+    if nome.lower() not in times:
+        raise ValueError(f"Time '{nome.lower()}' não registrado!")
+    return nome.lower()
 
 
 def escolher_estrategia(time: str, estrategias: List[str], modo: ModoJogo) -> int:
@@ -572,7 +572,7 @@ def carregar_times_config(caminho_csv="times.csv"):
                 continue
             nome, emoji, cor_nome = (linha + ["", ""])[:3]
             cor = getattr(Fore, cor_nome.strip().upper(), "")
-            config[nome.strip()] = {"emoji": emoji.strip(), "cor": cor}
+            config[nome.strip().lower()] = {"emoji": emoji.strip(), "cor": cor}
     return config
 
 
@@ -772,7 +772,7 @@ def simular_partida_auto(time1: str, time2: str, fase, modo: ModoJogo = "auto"):
     jogadores_time1 = [
         {
             "nome": j["nome"],
-            "time": time1,
+            "time": time1.lower(),
             "kills": 0,
             "deaths": 0,
             "rounds": 0,
@@ -789,7 +789,7 @@ def simular_partida_auto(time1: str, time2: str, fase, modo: ModoJogo = "auto"):
     jogadores_time2 = [
         {
             "nome": j["nome"],
-            "time": time2,
+            "time": time2.lower(),
             "kills": 0,
             "deaths": 0,
             "rounds": 0,

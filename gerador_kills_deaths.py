@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import random
 from typing import List, Dict, Any, Tuple
@@ -35,7 +37,7 @@ def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
     """
     try:
         return pd.read_csv(caminho_do_arquivo)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError) as e:
         print(f"Erro: O arquivo '{caminho_do_arquivo}' não foi encontrado.")
         print("Certifique-se de que o arquivo CSV está na mesma pasta que o script.")
         return None
@@ -52,9 +54,9 @@ def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
     causando KeyError em salvar_estatisticas_torneio). Todo o resto do
     código deve importar esta função em vez de redefini-la.
     """
-    time_df = df[df["time"] == nome_time]
+    time_df = df[df["time"] == nome_time].lower()
     if len(time_df) == 0:
-        raise ValueError(f"Time '{nome_time}' não encontrado no CSV.")
+        raise ValueError(f"Time '{nome_time.lower()}' não encontrado no CSV.")
 
     jogadores = []
     for _, row in time_df.iterrows():
@@ -64,7 +66,7 @@ def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
         jogadores.append(
             {
                 "nome": row["nick"],
-                "time": nome_time,
+                "time": nome_time.lower(),
                 "over": over_normalizado,
                 "role": row["funcao"],
                 "kills": 0,

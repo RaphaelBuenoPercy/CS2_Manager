@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 from funcoes_torneio_deepseek import (
@@ -76,7 +77,7 @@ def menu_gerenciar_times():
         escolha = obter_opcao_numerica(1, 6)
 
         if escolha == 1:
-            nome = input("Nome do novo time: ").strip()
+            nome = input("Nome do novo time: ").strip().lower()
             try:
                 adicionar_time(nome)
                 salvar_times_csv()
@@ -143,8 +144,8 @@ def menu_partida():
         elif escolha == 2:
             if len(times) >= 2:
                 listar_times()
-                time1 = input("Nome do primeiro time: ").strip()
-                time2 = input("Nome do segundo time: ").strip()
+                time1 = input("Nome do primeiro time: ").strip().lower()
+                time2 = input("Nome do segundo time: ").strip().lower()
                 if time1 in times and time2 in times:
                     jogar_partida(modo="manual", time1=time1, time2=time2)
                 else:
@@ -203,7 +204,7 @@ def menu_simular_torneio():
     times_escolhidos = []
     for i in range(qtd):
         while True:
-            nome = input(f"Time {i+1}: ").strip()
+            nome = input(f"Time {i+1}: ").strip().lower()
             if nome in times and nome not in times_escolhidos:
                 times_escolhidos.append(nome)
                 break
@@ -277,7 +278,7 @@ def main():
                 print(
                     "⚠️ 'jogadores.csv' não encontrado — os times foram carregados, mas sem elenco.\n"
                 )
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             print(f"Arquivo 'times.csv' não encontrado no diretório atual!\n")
 
     while True:

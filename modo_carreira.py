@@ -46,7 +46,7 @@ def carregar_progresso(arquivo=ARQUIVO_SAVE):
     try:
         with open(arquivo, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         print("⚠️ Nenhum save encontrado. Criando novo progresso.")
         return {
             "time_usuario": None,
@@ -80,7 +80,7 @@ def escolher_time_carreira():
     """Permite o usuário escolher o time para iniciar a carreira."""
     listar_times()
     while True:
-        nome = input("Escolha seu time para iniciar a carreira: ").strip()
+        nome = input("Escolha seu time para iniciar a carreira: ").strip().lower()
         if nome in times:
             return nome
         print("Time inválido. Tente novamente.\n")

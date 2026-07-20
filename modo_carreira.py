@@ -20,7 +20,7 @@ CALENDARIO_TORNEIOS = {
     5: ["Blast Rivals Shangai"],
     6: ["IEM Bahia"],
     7: ["PGL Amsterdam Major"],
-    8: ["Blast Atenas"],
+    8: ["Blast Sydney"],
     9: ["Thunderpick Malta"],
     10: ["Starladder Beijing"],
     11: ["ESL Pro League II Buenos Aires"],
@@ -135,8 +135,10 @@ def jogar_torneio_carreira(dados):
         df_estat, df_total = salvar_estatisticas_torneio(resultados, {}, nome_torneio)
         mostrar_resumo_torneio(df_estat, df_total)
 
+        chave = f"{dados['ano_atual']}_{mes}_{nome_torneio}"
+
         # Converte DataFrame para JSON e adiciona ao save
-        dados["estatisticas"][nome_torneio] = {
+        dados["estatisticas"][chave] = {
             "detalhadas": df_estat.to_dict(),
             "resumo": df_total.to_dict(),
         }

@@ -152,7 +152,6 @@ def menu_partida():
             else:
                 print("Necessário pelo menos 2 times registrados!")
         elif escolha == 3:
-            main()
             return
 
 
@@ -174,6 +173,8 @@ def menu_torneio():
         elif escolha == 3:
             menu_simular_torneio()
             return
+        elif escolha == 4:
+            return
 
 
 def menu_simular_torneio():
@@ -188,7 +189,10 @@ def menu_simular_torneio():
     while True:
         try:
             qtd = int(input("Quantos times deseja incluir (4, 8, 16)? ").strip())
-            if qtd in (4, 8, 16):
+            if qtd > len(times):
+                print("Não existem times suficientes.")
+                return
+            elif qtd in (4, 8, 16):
                 break
             else:
                 print("Digite apenas 4, 8 ou 16.")

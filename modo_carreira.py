@@ -1,6 +1,8 @@
 import json
 import random
 import pandas as pd
+import shutil
+import os
 from funcoes_torneio_deepseek import (
     fase_mata_mata,
     salvar_estatisticas_torneio,
@@ -35,10 +37,19 @@ ARQUIVO_SAVE = "dados_carreira.json"
 
 
 def salvar_progresso(dados, arquivo=ARQUIVO_SAVE):
-    """Salva o estado atual da carreira no arquivo JSON."""
-    with open(arquivo, "w", encoding="utf-8") as f:
-        json.dump(dados, f, indent=4, ensure_ascii=False)
-    print("💾 Progresso salvo com sucesso!\n")
+    """Salva o estado atual da carreira de forma segura."""
+    arquivo_temp = f"{arquivo}.tmp"
+    try:
+        # Salva primeiro em um arquivo temporário
+        with open(arquivo_temp, "w", encoding="utf-8") as f:
+            json.dump(dados, f, indent=4, ensure_ascii=False)
+        # Substitui o arquivo original apenas se a gravação for concluída com sucesso
+        os.replace(arquivo_temp, arquivo)
+        print("💾 Progresso salvo com sucesso!\n")
+    except Exception as e:
+        print(f"⚠️ Erro crítico ao salvar o progresso: {e}")
+        if os.path.exists(arquivo_temp):
+            os.remove(arquivo_temp)
 
 
 def carregar_progresso(arquivo=ARQUIVO_SAVE):
@@ -78,7 +89,7 @@ def avancar_mes(dados):
 
 def escolher_time_carreira():
     """Permite o usuário escolher o time para iniciar a carreira."""
-    listar_times()
+    listar_times(times)
     while True:
         nome = input("Escolha seu time para iniciar a carreira: ").strip().lower()
         if nome in times:

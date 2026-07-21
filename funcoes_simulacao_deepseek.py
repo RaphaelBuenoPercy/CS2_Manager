@@ -14,6 +14,8 @@ from gerador_kills_deaths import (
     carregar_jogadores_de_arquivo,
     obter_jogadores,
 )
+from pathlib import Path
+from __future__ import annotations
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,29 @@ class ResultadoMapa:
     # usuário em fase_mata_mata, fase_grupos, double elimination) entrava
     # nas estatísticas do torneio.
     fase: str = ""
+    erro: bool = False
+
+    def to_dict(self) -> dict:
+
+        return {
+            "mapa": self.mapa,
+            "time_ct": self.time_ct,
+            "time_tr": self.time_tr,
+            "placar_time1": self.placar_time1,
+            "placar_time2": self.placar_time2,
+            "rounds": self.rounds,
+            "rounds_extra": self.rounds_extra,
+            "fase": self.fase,
+            "erro": self.erro,
+        }
+
+    @property
+    def vencedor(self) -> str:
+        return self.time_ct if self.placar_time1 > self.placar_time2 else self.time_tr
+
+    @property
+    def perdedor(self) -> str:
+        return self.time_tr if self.placar_time1 > self.placar_time2 else self.time_ct
 
 
 @dataclass
@@ -179,8 +204,8 @@ def jogar_mapa(
     time2: str,
     mapa: str,
     modo: ModoJogo,
-    jogadores_time1: int = 0,
-    jogadores_time2: int = 0,
+    jogadores_time1: List[Dict[str, Any]],
+    jogadores_time2: List[Dict[str, Any]],
 ) -> ResultadoMapa:
     """Executa uma partida completa em um mapa"""
 
@@ -316,7 +341,9 @@ def jogar_ot(
         print(
             f"\n=== Overtime {overtime_count} (Placar: {resultado.placar_time1}-{resultado.placar_time2}) ==="
         )
-        placar_meta = 13 + (overtime_count * 3)  # Meta para vencer o overtime
+        placar_meta = (
+            max(resultado.placar_time1, resultado.placar_time2) + 3
+        )  # Meta para vencer o overtime
 
         # Primeira metade do overtime (Time 1 no CT)
         placar_time1_1ot, placar_time2_1ot = jogar_half(
@@ -371,7 +398,15 @@ def jogar_partida(
 ) -> ResultadoPartida:
     """Gerencia uma partida completa entre dois times"""
     try:
+
+        if not Path("times.csv").exists():
+            raise FileNotFoundError("times.csv não encontrado.")
+
+        if not Path("jogadores.csv").exists():
+            raise FileNotFoundError("jogadores.csv não encontrado.")
+
         times_config = carregar_times_config("times.csv")
+
         # Validação inicial
         try:
             time1 = validar_time(time1) if time1 else random.choice(times)
@@ -406,7 +441,14 @@ def jogar_partida(
         except Exception as e:
             logger.exception("Erro na seleção de mapas entre %s e %s", time1, time2)
             print(f"Erro na seleção de mapas: {str(e)}")
-            return None
+            return ResultadoPartida(
+                partida_id=ContadorPartidas.proxima_partida(),
+                mapas=[],
+                vencedor="",
+                perdedor="",
+                modo_jogo=modo,
+                fase=fase_torneio,
+            )
 
         # Execução dos mapas
         for mapa in mapas:
@@ -416,7 +458,7 @@ def jogar_partida(
                     time1, time2, mapa, modo, jogadores_time1, jogadores_time2
                 )
 
-                if hasattr(resultado_mapa, "erro"):
+                if resultado_mapa.erro:
                     print(f"Mapa {mapa} ignorado devido a erros")
                     continue
 
@@ -444,7 +486,14 @@ def jogar_partida(
             except Exception as e:
                 logger.exception("Erro crítico durante o mapa %s", mapa)
                 print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
-                return resultado  # Retorna resultados parciais
+                return ResultadoPartida(
+                    partida_id=ContadorPartidas.proxima_partida(),
+                    mapas=[],
+                    vencedor="",
+                    perdedor="",
+                    modo_jogo=modo,
+                    fase=fase_torneio,
+                )
 
         resultado.vencedor, resultado.perdedor = (
             (time1, time2) if vitorias_time1 > vitorias_time2 else (time2, time1)
@@ -475,7 +524,14 @@ def jogar_partida(
     except Exception as e:
         logger.exception("Erro fatal na partida entre %s e %s", time1, time2)
         print(f"Erro fatal na partida: {str(e)}")
-        return None
+        return ResultadoPartida(
+            partida_id=ContadorPartidas.proxima_partida(),
+            mapas=[],
+            vencedor="",
+            perdedor="",
+            modo_jogo=modo,
+            fase=fase_torneio,
+        )
 
 
 # ==================== EXEMPLO DE USO ====================
@@ -825,6 +881,9 @@ def simular_partida_auto(time1: str, time2: str, fase, modo: ModoJogo = "auto"):
             1 for m in resultado.mapas if m.placar_time2 > m.placar_time1
         )
 
+        if not resultado.mapas:
+            raise RuntimeError("Nenhum mapa foi concluído.")
+
         # Verifica condição de vitória da partida
         if vitorias_time1 == 2 or vitorias_time2 == 2:
             break
@@ -844,9 +903,6 @@ def simular_partida_auto(time1: str, time2: str, fase, modo: ModoJogo = "auto"):
 
 # Exemplo de uso:
 # resultados, vitorias, kills_media, deaths_media = simular_partidas_em_lote("FURIA", "MIBR", n=100)
-
-import random
-from collections import defaultdict
 
 
 def simular_torneio_mata_mata(times, simular_partida_auto):
@@ -922,7 +978,7 @@ def simular_torneios_em_lote(times, simular_partida, n=1):
     for i in range(n):
         print(f"\n🏆 Simulando Torneio {i+1}/{n}")
         ranking, vitorias, derrotas, partidas_jogadas = simular_torneio_mata_mata(
-            times[:], simular_partida_auto
+            times[:], simular_partida
         )
         todas_as_partidas.extend(partidas_jogadas)
 

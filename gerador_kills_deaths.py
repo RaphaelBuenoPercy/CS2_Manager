@@ -24,6 +24,14 @@ ROLE_WEIGHTS = {
     },
 }
 
+CONFIG_COMBATE = {
+    "CHANCE_4_A_5_KILLS": 0.85,
+    "CHANCE_PERDEDOR_MATA": 0.91,
+    "EXPOENTE_OVER": 2.8,  # aumenta a diferença de skill
+    "MULTIPLICADOR_OVER": 2.2,  # amplifica ainda mais
+    "BASE_PESO": 0.1,
+}
+
 
 def carregar_jogadores_de_arquivo(caminho_do_arquivo: str) -> pd.DataFrame:
     """
@@ -93,14 +101,16 @@ def simular_kills_do_round(
     )
 
     kills_vencedor = (
-        random.choice([4, 5]) if random.random() < 0.85 else random.randint(1, 3)
+        random.choice([4, 5])
+        if random.random() < CONFIG_COMBATE["CHANCE_4_A_5_KILLS"]
+        else random.randint(1, 3)
     )
 
     max_kills_perdedor = min(kills_vencedor - 1, 5) if kills_vencedor > 0 else 0
 
     kills_perdedor = (
         random.randint(0, max_kills_perdedor)
-        if random.random() < 0.91
+        if random.random() < CONFIG_COMBATE["CHANCE_PERDEDOR_MATA"]
         else random.randint(kills_vencedor, 5)
     )
 
@@ -109,37 +119,33 @@ def simular_kills_do_round(
             f"Esperava lista de jogadores, mas recebeu: {type(vencedores)} {vencedores}"
         )
 
-    # Aumenta o peso do over de forma significativa, mas controlada
-    expoente_over = 2.8  # aumenta a diferença de skill
-    multiplicador = 2.2  # amplifica ainda mais
-
     pesos_kill_vencedores = [
-        (p["over"] ** expoente_over)
+        (p["over"] ** CONFIG_COMBATE["EXPOENTE_OVER"])
         * ROLE_WEIGHTS["kill"].get(p["role"], 1.0)
-        * multiplicador
-        + 0.1
+        * CONFIG_COMBATE["MULTIPLICADOR_OVER"]
+        + CONFIG_COMBATE["BASE_PESO"]
         for p in vencedores
     ]
     pesos_death_perdedores = [
-        (p["over"] ** expoente_over)
+        (p["over"] ** CONFIG_COMBATE["EXPOENTE_OVER"])
         * ROLE_WEIGHTS["death"].get(p["role"], 1.0)
-        * multiplicador
-        + 0.1
+        * CONFIG_COMBATE["MULTIPLICADOR_OVER"]
+        + CONFIG_COMBATE["BASE_PESO"]
         for p in perdedores
     ]
 
     pesos_kill_perdedores = [
-        (p["over"] ** expoente_over)
+        (p["over"] ** CONFIG_COMBATE["EXPOENTE_OVER"])
         * ROLE_WEIGHTS["kill"].get(p["role"], 1.0)
-        * multiplicador
-        + 0.1
+        * CONFIG_COMBATE["MULTIPLICADOR_OVER"]
+        + CONFIG_COMBATE["BASE_PESO"]
         for p in perdedores
     ]
     pesos_death_vencedores = [
-        (p["over"] ** expoente_over)
+        (p["over"] ** CONFIG_COMBATE["EXPOENTE_OVER"])
         * ROLE_WEIGHTS["death"].get(p["role"], 1.0)
-        * multiplicador
-        + 0.1
+        * CONFIG_COMBATE["MULTIPLICADOR_OVER"]
+        + CONFIG_COMBATE["BASE_PESO"]
         for p in vencedores
     ]
 

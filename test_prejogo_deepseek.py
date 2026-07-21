@@ -41,10 +41,10 @@ class TestPreJogo(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             carregar_times_csv("arquivo_inexistente.csv")
 
-    # Testes para listar_times()
+    # Testes para listar_times(times)
     def test_listar_times_vazio(self):
         with patch("builtins.print") as mocked_print:
-            listar_times()
+            listar_times(times)
             mocked_print.assert_called_with("Nenhum time registrado\n")
 
     def test_listar_times_preenchido(self):
@@ -53,7 +53,7 @@ class TestPreJogo(unittest.TestCase):
 
         # Mock de print para verificar a saída
         with patch("builtins.print") as mocked_print:
-            listar_times()  # Chama a função para listar os times
+            listar_times(times)  # Chama a função para listar os times
 
             # Verifica se os times foram listados com o número correto
             mocked_print.assert_any_call(

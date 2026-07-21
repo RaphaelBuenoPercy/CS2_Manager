@@ -79,15 +79,15 @@ def menu_gerenciar_times():
         if escolha == 1:
             nome = input("Nome do novo time: ").strip().lower()
             try:
-                adicionar_time(nome)
-                salvar_times_csv()
+                adicionar_time(nome, times)
+                salvar_times_csv(times)
             except ValueError as e:
                 # Antes isso não era tratado aqui: um nome vazio ou duplicado
                 # derrubava o menu inteiro com uma exceção não capturada.
                 print(f"Erro: {e}\n")
 
         elif escolha == 2:
-            listar_times()
+            listar_times(times)
             if times:
                 try:
                     idx = int(input("Número do time a remover: ")) - 1
@@ -105,7 +105,7 @@ def menu_gerenciar_times():
                     print("Número inválido!")
 
         elif escolha == 3:
-            listar_times()
+            listar_times(times)
 
         elif escolha == 4:
             calcular_overs_medios_times()
@@ -143,7 +143,7 @@ def menu_partida():
                 print("Necessário pelo menos 2 times registrados!")
         elif escolha == 2:
             if len(times) >= 2:
-                listar_times()
+                listar_times(times)
                 time1 = input("Nome do primeiro time: ").strip().lower()
                 time2 = input("Nome do segundo time: ").strip().lower()
                 if time1 in times and time2 in times:
@@ -183,7 +183,7 @@ def menu_simular_torneio():
         print("Necessário pelo menos 4 times registrados!")
         return
 
-    listar_times()
+    listar_times(times)
     print("\n=== SIMULAÇÃO DE TORNEIO MATA-MATA ===")
     print("Escolha 4 ou 8 times para o torneio.")
 

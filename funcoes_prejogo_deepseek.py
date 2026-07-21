@@ -3,23 +3,12 @@ import csv
 import logging
 from typing import List, Dict, Optional
 from collections import defaultdict
+from estrategias_deepseek import estrategias_por_mapa
 
 logger = logging.getLogger(__name__)
 
-# NOTA: este módulo já teve uma segunda implementação (classes `Jogador` e
-# `Time`, com estado próprio, orientada a objetos) que nunca chegou a ser
-# usada pelo resto do jogo — todo o fluxo real trabalha com `times: List[str]`
-# e dicionários de jogador. Essa implementação paralela foi removida por ser
-# código morto que só confundia manutenção futura.
 
-# Base de dados dos times
-times: List[str] = []
-
-# Estratégias importadas
-from estrategias_deepseek import estrategias_por_mapa
-
-
-def adicionar_time(nome: str) -> None:
+def adicionar_time(nome: str, lista_times: List[str]) -> None:
     """Adiciona um novo time à base de dados, validando entradas.
 
     Args:
@@ -28,28 +17,27 @@ def adicionar_time(nome: str) -> None:
     Raises:
         ValueError: Se nome for vazio ou duplicado
     """
-    global times
     nome = nome.strip().lower()
     if not nome:
         raise ValueError("Nome do time não pode ser vazio")
 
-    if any(t.lower() == nome.lower() for t in times):
+    if any(t.lower() == nome.lower() for t in lista_times):
         raise ValueError(f"Time '{nome}' já está registrado")
 
-    times.append(nome)
+    lista_times.append(nome)
     print(f"✓ Time '{nome}' adicionado com sucesso\n")
 
 
-def carregar_times_csv(arquivo: str = "times.csv") -> None:
+def carregar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> None:
     """Carrega times de um arquivo CSV validando o formato.
 
     Args:
+        lista_times: Lista para adicionar os times carregados
         arquivo: Caminho do arquivo CSV
 
     Raises:
         FileNotFoundError: Se o arquivo não existir
     """
-    global times
     try:
         novos_times = []
         with open(arquivo, "r", newline="", encoding="utf-8") as csvfile:
@@ -57,10 +45,10 @@ def carregar_times_csv(arquivo: str = "times.csv") -> None:
             for linha in reader:
                 if linha and linha[0].strip():
                     nome = linha[0].strip().lower()
-                    if nome not in times and nome not in novos_times:
+                    if nome not in lista_times and nome not in novos_times:
                         novos_times.append(nome)
 
-        times.extend(novos_times)
+        lista_times.extend(novos_times)
         print(f"✓ {len(novos_times)} times carregados de '{arquivo}'\n")
 
     except FileNotFoundError:
@@ -70,7 +58,7 @@ def carregar_times_csv(arquivo: str = "times.csv") -> None:
         print(f"Erro ao ler CSV: {str(e)}\n")
 
 
-def salvar_times_csv(arquivo: str = "times.csv") -> None:
+def salvar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> None:
     """Persiste a lista atual de `times` de volta no CSV.
 
     Antes, adicionar/remover times pelo menu só alterava a lista em memória:
@@ -93,10 +81,10 @@ def salvar_times_csv(arquivo: str = "times.csv") -> None:
     try:
         with open(arquivo, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            for nome.lower() in times:
+            for nome in lista_times:
                 emoji, cor = config_existente.get(nome, ["", ""])
                 writer.writerow([nome, emoji, cor])
-        logger.info("Times persistidos em '%s' (%d times)", arquivo, len(times))
+        logger.info("Times persistidos em '%s' (%d times)", arquivo, len(lista_times))
     except Exception as e:
         logger.error("Erro ao salvar '%s': %s", arquivo, e)
         print(f"⚠️ Não foi possível salvar as alterações em '{arquivo}': {e}")
@@ -130,18 +118,18 @@ def calcular_over_medio(time_nome: str, arquivo_csv: str = "jogadores.csv") -> f
         raise RuntimeError(f"Erro ao calcular over médio: {str(e)}")
 
 
-def listar_times() -> None:
+def listar_times(lista_times: List[str]) -> None:
     """Exibe todos os times registrados formatados."""
-    global times
+
     try:
-        if not times:
+        if not lista_times:
             print("Nenhum time registrado\n")
             return
 
         print("\nTimes registrados:")
-        for i, time in enumerate(times, 1):
+        for i, time in enumerate(lista_times, 1):
             print(f"  {i}. {time}")
-        print(f"Total: {len(times)} times\n")
+        print(f"Total: {len(lista_times)} times\n")
 
     except Exception as e:
         print(f"Erro ao listar times: {str(e)}\n")

@@ -1,21 +1,16 @@
-from os import times
 import random
 import csv
 from typing import List, Dict
-import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
 from funcoes_simulacao_deepseek import (
     jogar_partida,
     simular_partida_auto,
     ResultadoPartida,
 )
 from collections import defaultdict
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.lines as mlines
 
 
 def visualizar_bracket_torneio(resultados_partidas):
@@ -319,15 +314,28 @@ def realizar_jogo_dbelim(
 
 
 def fase_grupos(
-    times: List[str], num_grupos: int, num_classificados: int, ida_e_volta: bool
+    times: List[str],
+    num_grupos: int,
+    num_classificados: int,
+    ida_e_volta: bool,
+    time_usuario: str = None,
 ) -> tuple:
     """Executa a fase de grupos do torneio.
+
+    Assim como no mata-mata e no double elimination, só as partidas em que
+    ``time_usuario`` está jogando pedem escolha de modo ao jogador; toda
+    partida entre times de terceiros é sempre auto-simulada — inclusive o
+    veto de mapas, que também é pulado (usamos ``simular_partida_auto`` em
+    vez de ``jogar_partida`` para esses jogos, já que ``jogar_partida``
+    sempre pede o veto manualmente, não importa o modo).
 
     Args:
         times: Lista de times participantes
         num_grupos: Número de grupos
         num_classificados: Times classificados por grupo
         ida_e_volta: Se True, jogos de ida e volta
+        time_usuario: Nome do time controlado pelo jogador. Se None, todas
+            as partidas são tratadas como de terceiros (100% automáticas).
 
     Returns:
         Tuple: (Lista de classificados, Lista de resultados)
@@ -348,32 +356,43 @@ def fase_grupos(
 
                 # Jogos de ida e volta
                 for _ in range(2 if ida_e_volta else 1):
-                    print(f"\nJogo entre: {time1} e {time2}!\n")
-                    print("Modos de partida")
-                    print("1. Partida Rápida (Aleatória)")
-                    print("2. Partida Personalizada")
+                    jogo_do_usuario = time_usuario is not None and time_usuario in (
+                        time1,
+                        time2,
+                    )
 
-                    escolha = obter_opcao_numerica(1, 2)
+                    if jogo_do_usuario:
+                        print(f"\nJogo entre: {time1} e {time2}!\n")
+                        print("Modos de partida")
+                        print("1. Partida Rápida (Aleatória)")
+                        print("2. Partida Personalizada")
+                        escolha = obter_opcao_numerica(1, 2)
+                        modo = "auto" if escolha == 1 else "manual"
 
-                    if escolha == 1:
                         resultado = jogar_partida(
-                            modo="auto", time1=time1, time2=time2, fase_torneio="Grupos"
+                            modo=modo, time1=time1, time2=time2, fase_torneio="Grupos"
                         )
-                        placares[resultado.vencedor] += 3
-                        resultados.append(resultado)
-
-                    elif escolha == 2:
-                        if time1 in times and time2 in times:
-                            resultado = jogar_partida(
-                                modo="manual",
-                                time1=time1,
-                                time2=time2,
-                                fase_torneio="Grupos",
+                        if resultado is None:
+                            print(
+                                "⚠️ Não foi possível concluir a partida manualmente, simulando automaticamente..."
                             )
-                            placares[resultado.vencedor] += 3
-                            resultados.append(resultado)
-                        else:
-                            print("Times inválidos!")
+                            vencedor_p, perdedor_p, resultado = simular_partida_auto(
+                                time1, time2, "Grupos"
+                            )
+                            resultado.vencedor = vencedor_p
+                            resultado.perdedor = perdedor_p
+                    else:
+                        print(
+                            f"\n🤖 {time1} vs {time2} — partida de terceiros, simulando automaticamente..."
+                        )
+                        vencedor_p, perdedor_p, resultado = simular_partida_auto(
+                            time1, time2, "Grupos"
+                        )
+                        resultado.vencedor = vencedor_p
+                        resultado.perdedor = perdedor_p
+
+                    placares[resultado.vencedor] += 3
+                    resultados.append(resultado)
 
         # Classificação por pontos
         grupo_ordenado = sorted(placares.items(), key=lambda x: -x[1])
@@ -438,7 +457,12 @@ def fase_double_elimination(
             novos_vencedores.append(resultado.vencedor)
             novos_perdedores.append(resultado.perdedor)
 
-        # Jogos na chave de perdedores (se houver times na chave de perdedores)
+        # Jogos na chave de perdedores (se houver times na chave de perdedores).
+        # Se sobrar só 1 time (número ímpar de perdedores), ele recebe um bye
+        # e continua esperando um adversário na próxima rodada — ele NUNCA é
+        # promovido de volta pra chave de vencedores, porque já perdeu uma
+        # vez (fazer isso "ressuscitaria" o time e, pior, causava um loop
+        # infinito quando o número de times não fechava direitinho).
         if perdedores:
             perdedores_da_rodada = list(perdedores)
             novos_perdedores_chave = []
@@ -467,43 +491,48 @@ def fase_double_elimination(
         random.shuffle(vencedores)
         random.shuffle(perdedores)
 
-        if len(perdedores) == 1:
-            vencedores.append(perdedores[0])
-            perdedores.clear()
-            continue
+    # A chave de vencedores já decidiu seu campeão (times/vencedores tem 1 time).
+    # Agora reduzimos a chave de perdedores a um único finalista, jogando
+    # quantas rodadas forem necessárias — funciona para qualquer quantidade
+    # de times que tenha sobrado ali (0, 1, 2 ou mais).
+    rodada_lower = 1
+    while len(perdedores) > 1:
+        print(f"\n--- Final Lower (rodada {rodada_lower}) ---")
+        perdedores_da_rodada = list(perdedores)
+        proximos_perdedores = []
 
-    # Final: o último vencedor da chave de vencedores enfrenta o último vencedor da chave de perdedores
-    if perdedores:
-        print(perdedores)
-        print("\n--- Final Lower ---")
+        if len(perdedores_da_rodada) % 2 == 1:
+            time_bye = perdedores_da_rodada.pop()
+            print(f"\n🎟️  {time_bye} recebeu um bye na Final Lower.")
+            proximos_perdedores.append(time_bye)
 
-        modo_escolhido = escolher_modo(perdedores[0], perdedores[1])
-        resultado = realizar_jogo_dbelim(
-            perdedores[0],
-            perdedores[1],
-            rodada,
-            "perdedores",
-            resultados,
-            modo_escolhido,
-        )
-        resultados.append(resultado)
+        for i in range(0, len(perdedores_da_rodada), 2):
+            time1 = perdedores_da_rodada[i]
+            time2 = perdedores_da_rodada[i + 1]
+            modo_escolhido = escolher_modo(time1, time2)
+            resultado = realizar_jogo_dbelim(
+                time1, time2, rodada, "perdedores", resultados, modo_escolhido
+            )
+            resultados.append(resultado)
+            proximos_perdedores.append(resultado.vencedor)
 
-        print("\n--- Final ---")
-        modo_escolhido = escolher_modo(vencedores[0], resultado.vencedor)
-        resultado = realizar_jogo_dbelim(
-            vencedores[0],
-            resultado.vencedor,
-            rodada,
-            "vencedores",
-            resultados,
-            modo_escolhido,
-        )
-        resultados.append(resultado)
+        perdedores = proximos_perdedores
+        rodada_lower += 1
 
-        return resultado.vencedor, resultados
+    if not perdedores:
+        # Ninguém sobrou na chave de perdedores (ex.: torneio com 1 time só)
+        return (vencedores[0] if vencedores else None), resultados
 
-    else:
-        return vencedores, resultados
+    finalista_lower = perdedores[0]
+
+    print("\n--- Final ---")
+    modo_escolhido = escolher_modo(vencedores[0], finalista_lower)
+    resultado = realizar_jogo_dbelim(
+        vencedores[0], finalista_lower, rodada, "vencedores", resultados, modo_escolhido
+    )
+    resultados.append(resultado)
+
+    return resultado.vencedor, resultados
 
 
 def fase_mata_mata(
@@ -590,44 +619,42 @@ def fase_mata_mata(
     return times, resultados
 
 
-def salvar_resultados_times_csv(nome_torneio: str, resultados: List[Dict]) -> None:
-    """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa."""
-    resultados_dict = [resultado for resultado in resultados]
+def salvar_resultados_times_csv(
+    nome_torneio: str, resultados: List[ResultadoPartida]
+) -> None:
+    """Salva os resultados do torneio em arquivo CSV, com uma linha para cada mapa.
 
+    ``resultados`` é uma lista de objetos ``ResultadoPartida`` (cada um com uma
+    lista de ``ResultadoMapa`` em ``.mapas``) — lemos os atributos diretamente,
+    sem tentar tratar como dict nem reconstruir dados via regex em cima de uma
+    representação em string.
+    """
     try:
         linhas_csv = []
 
-        for resultado in resultados_dict:
-            partida_id = resultado.get("partida_id")
-            fase = resultado.get("fase")
-            mapas = resultado.get("mapas", [])
+        for resultado in resultados:
+            if not getattr(resultado, "mapas", None):
+                continue
 
-            for mapa_str in mapas:
-                # Usando regex para extrair os dados do mapa
-                pattern = r"ResultadoMapa\(mapa='([^']+)', time_ct='([^']+)', time_tr='([^']+)', placar_time1=(\d+), placar_time2=(\d+), rounds_extra=(\d+)"
-                match = re.match(pattern, mapa_str)
+            partida_id = getattr(resultado, "partida_id", None)
+            fase = getattr(resultado, "fase", "")
 
-                if match:
-                    nome_mapa = match.group(1)
-                    time_ct = match.group(2)
-                    time_tr = match.group(3)
-                    placar_time1 = int(match.group(4))
-                    placar_time2 = int(match.group(5))
-
-                    # Cria uma nova linha para o CSV
-                    linha = {
+            for mapa in resultado.mapas:
+                linhas_csv.append(
+                    {
                         "partida_id": partida_id,
-                        "time1": time_ct,
-                        "time2": time_tr,
-                        "placar_time1": placar_time1,
-                        "placar_time2": placar_time2,
-                        "mapas": nome_mapa,
+                        "time1": mapa.time_ct,
+                        "time2": mapa.time_tr,
+                        "placar_time1": mapa.placar_time1,
+                        "placar_time2": mapa.placar_time2,
+                        "mapas": mapa.mapa,
                         "fase": fase,
                     }
+                )
 
-                    linhas_csv.append(linha)
-                else:
-                    print(f"Formato inválido para o mapa: {mapa_str}")
+        if not linhas_csv:
+            print("⚠️ Nenhum resultado de mapa encontrado — nada a salvar em CSV.")
+            return
 
         # Escreve os dados no arquivo CSV
         with open(
@@ -1099,6 +1126,30 @@ def mostrar_resumo_torneio(df, df_total):
     return top10_total, top10_mapas
 
 
+def escolher_time_usuario(times_selecionados: List[str]):
+    """Pergunta qual dos times selecionados é o do jogador.
+
+    Só as partidas desse time vão pedir escolha de modo; todas as outras —
+    entre times de terceiros — são sempre auto-simuladas, em qualquer
+    formato de torneio (grupos, mata-mata ou double elimination). Se o
+    jogador não quiser controlar nenhum time, o torneio inteiro roda
+    automático.
+    """
+    print("\nQual desses times é o seu?")
+    for i, time in enumerate(times_selecionados, 1):
+        print(f"  {i}. {time}")
+    print("  0. Nenhum — quero que o torneio inteiro seja automático")
+
+    escolha = validar_input_numerico(
+        "Escolha o número do seu time (ou 0): ",
+        min_val=0,
+        max_val=len(times_selecionados),
+    )
+    if escolha == 0:
+        return None
+    return times_selecionados[escolha - 1]
+
+
 def criar_torneio(times: List[str]) -> None:
     """Fluxo principal para criação e execução do torneio."""
     if len(times) < 2:
@@ -1112,6 +1163,12 @@ def criar_torneio(times: List[str]) -> None:
         )
 
         times_selecionados = selecionar_times(times, num_times)
+
+        # É óbvio que o jogador só decide o modo das partidas do próprio
+        # time — todo o resto do torneio (jogos entre times de terceiros)
+        # é sempre automático, sem interação.
+        time_usuario = escolher_time_usuario(times_selecionados)
+
         formato = validar_input_numerico(
             "Formato (1-Grupos / 2-Mata-mata / 3-Double Elimination): ",
             min_val=1,
@@ -1140,26 +1197,31 @@ def criar_torneio(times: List[str]) -> None:
             )
 
             classificados, resultados = fase_grupos(
-                times_selecionados, num_grupos, num_classificados, ida_e_volta
+                times_selecionados,
+                num_grupos,
+                num_classificados,
+                ida_e_volta,
+                time_usuario=time_usuario,
             )
 
-            campeao, resultados = fase_mata_mata(classificados, resultados)
+            campeao, resultados = fase_mata_mata(
+                classificados, resultados, time_usuario=time_usuario
+            )
             print(f"\n🏆 Campeão: {campeao[0]} 🏆")
             salvar_resultados_times_csv(nome_torneio, resultados)
 
         elif formato == 3:
             campeao, resultados = fase_double_elimination(
-                times_selecionados, resultados
+                times_selecionados, resultados, time_usuario=time_usuario
             )
             print(f"\n🏆 Campeão: {campeao} 🏆")
             salvar_resultados_times_csv(nome_torneio, resultados)
-            print(
-                "CRIAR SALVAR RESULTADOS CSV PARA DOUBLE ELIMINATION, TESTAR COM MAIS QUE 4 TIMES E CRIAR FORMATO SUIÇO"
-            )
 
         else:
             classificados = times_selecionados
-            campeao, resultados = fase_mata_mata(classificados, resultados)
+            campeao, resultados = fase_mata_mata(
+                classificados, resultados, time_usuario=time_usuario
+            )
             print(f"\n🏆 Campeão: {campeao[0]} 🏆")
             salvar_resultados_times_csv(nome_torneio, resultados)
 

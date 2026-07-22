@@ -291,15 +291,28 @@ def realizar_jogo_dbelim(
     chave: str,
     resultados: List[dict],
     modo_escolhido: int,
+    jogo_do_usuario: bool = True,
 ) -> ResultadoPartida:
     """
     Realiza um jogo entre dois times e retorna o resultado da partida.
 
-    ``modo_escolhido`` já vem decidido por quem chama (1 = auto, 2 = manual):
-    quem decide se pergunta ou não ao jogador é ``fase_double_elimination``,
-    não esta função — aqui só executamos a partida no modo indicado.
+    ``jogo_do_usuario`` indica se o time do jogador está nessa partida. Se
+    não estiver, o jogo é sempre auto-simulado via ``simular_partida_auto``
+    — sem veto de mapa manual nem qualquer outra interação — não importa o
+    valor de ``modo_escolhido``. ``jogar_partida`` sempre pede o veto de
+    mapa manualmente, não importa o modo, então usá-la para partidas de
+    terceiros faria elas pedirem input mesmo assim.
+
+    ``modo_escolhido`` já vem decidido por quem chama (1 = auto, 2 = manual)
+    e só é usado quando a partida é do jogador.
     """
     print(f"\nJogo entre: {time1} e {time2}!\n")
+
+    if not jogo_do_usuario:
+        vencedor, perdedor, resultado = simular_partida_auto(time1, time2, rodada)
+        resultado.vencedor = vencedor
+        resultado.perdedor = perdedor
+        return resultado
 
     if modo_escolhido == 1:
         resultado = jogar_partida(
@@ -309,6 +322,15 @@ def realizar_jogo_dbelim(
         resultado = jogar_partida(
             modo="manual", time1=time1, time2=time2, fase_torneio=rodada
         )
+
+    if resultado is None:
+        # A partida do usuário não pôde ser concluída (ex.: falha no veto
+        # de mapas) — cai para auto-simulação em vez de propagar um
+        # resultado quebrado (None) pro chaveamento.
+        print("⚠️ Não foi possível concluir a partida, simulando automaticamente...")
+        vencedor, perdedor, resultado = simular_partida_auto(time1, time2, rodada)
+        resultado.vencedor = vencedor
+        resultado.perdedor = perdedor
 
     return resultado
 
@@ -408,21 +430,27 @@ def fase_double_elimination(
 
     Assim como no mata-mata simples, só as partidas em que ``time_usuario``
     está jogando pedem escolha de modo ao jogador; toda partida entre times
-    de terceiros é sempre automática, sem nenhuma interação. A decisão do
-    modo (perguntar ou usar automático) é feita aqui, e o resultado já
-    pronto (1 ou 2) é passado para ``realizar_jogo_dbelim``, que só executa.
+    de terceiros é sempre automática, sem nenhuma interação (nem escolha de
+    modo, nem veto de mapa). A decisão é feita aqui e repassada pronta para
+    ``realizar_jogo_dbelim``, que só executa.
     """
 
-    def escolher_modo(time1: str, time2: str) -> int:
-        """Decide o modo da partida: só pergunta se for jogo do usuário."""
+    def escolher_modo(time1: str, time2: str) -> tuple[bool, int]:
+        """Decide se a partida é do usuário e, se for, o modo escolhido.
+
+        Retorna (jogo_do_usuario, modo_escolhido). Partidas de terceiros
+        retornam (False, 1) — o "1" nunca chega a ser usado nesse caso,
+        realizar_jogo_dbelim ignora modo_escolhido quando jogo_do_usuario
+        é False e vai direto para auto-simulação sem veto manual.
+        """
         jogo_do_usuario = time_usuario is not None and time_usuario in (time1, time2)
         if jogo_do_usuario:
             print("Modos de partida")
             print("1. Partida Rápida (Aleatória)")
             print("2. Partida Personalizada")
-            return obter_opcao_numerica(1, 2)
+            return True, obter_opcao_numerica(1, 2)
         print("🤖 Partida entre times de terceiros — simulando automaticamente...")
-        return 1
+        return False, 1
 
     vencedores = []
     perdedores = []
@@ -449,9 +477,15 @@ def fase_double_elimination(
         for i in range(0, len(times_da_rodada), 2):
             time1 = times_da_rodada[i]
             time2 = times_da_rodada[i + 1]
-            modo_escolhido = escolher_modo(time1, time2)
+            jogo_do_usuario, modo_escolhido = escolher_modo(time1, time2)
             resultado = realizar_jogo_dbelim(
-                time1, time2, rodada, "vencedores", resultados, modo_escolhido
+                time1,
+                time2,
+                rodada,
+                "vencedores",
+                resultados,
+                modo_escolhido,
+                jogo_do_usuario,
             )
             resultados.append(resultado)
             novos_vencedores.append(resultado.vencedor)
@@ -474,9 +508,15 @@ def fase_double_elimination(
             for i in range(0, len(perdedores_da_rodada), 2):
                 time1 = perdedores_da_rodada[i]
                 time2 = perdedores_da_rodada[i + 1]
-                modo_escolhido = escolher_modo(time1, time2)
+                jogo_do_usuario, modo_escolhido = escolher_modo(time1, time2)
                 resultado = realizar_jogo_dbelim(
-                    time1, time2, rodada, "perdedores", resultados, modo_escolhido
+                    time1,
+                    time2,
+                    rodada,
+                    "perdedores",
+                    resultados,
+                    modo_escolhido,
+                    jogo_do_usuario,
                 )
                 resultados.append(resultado)
                 novos_perdedores_chave.append(resultado.vencedor)
@@ -509,9 +549,15 @@ def fase_double_elimination(
         for i in range(0, len(perdedores_da_rodada), 2):
             time1 = perdedores_da_rodada[i]
             time2 = perdedores_da_rodada[i + 1]
-            modo_escolhido = escolher_modo(time1, time2)
+            jogo_do_usuario, modo_escolhido = escolher_modo(time1, time2)
             resultado = realizar_jogo_dbelim(
-                time1, time2, rodada, "perdedores", resultados, modo_escolhido
+                time1,
+                time2,
+                rodada,
+                "perdedores",
+                resultados,
+                modo_escolhido,
+                jogo_do_usuario,
             )
             resultados.append(resultado)
             proximos_perdedores.append(resultado.vencedor)
@@ -526,9 +572,15 @@ def fase_double_elimination(
     finalista_lower = perdedores[0]
 
     print("\n--- Final ---")
-    modo_escolhido = escolher_modo(vencedores[0], finalista_lower)
+    jogo_do_usuario, modo_escolhido = escolher_modo(vencedores[0], finalista_lower)
     resultado = realizar_jogo_dbelim(
-        vencedores[0], finalista_lower, rodada, "vencedores", resultados, modo_escolhido
+        vencedores[0],
+        finalista_lower,
+        rodada,
+        "vencedores",
+        resultados,
+        modo_escolhido,
+        jogo_do_usuario,
     )
     resultados.append(resultado)
 

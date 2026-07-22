@@ -1,0 +1,299 @@
+# test_integracao_loop_principal.py
+"""Teste de integração do loop principal do jogo.
+
+Diferente dos outros arquivos de teste (que isolam cada função com mocks
+pesados), este aqui deliberadamente NÃO mocka o pipeline de simulação real
+(leitura de CSV, obter_jogadores, jogar_mapa, jogar_half, geração de
+kills/deaths, cálculo de estatísticas...). A única coisa mockada é
+`input()`, porque os fluxos são interativos por natureza.
+
+A ideia é ter uma rede de segurança que pegue exatamente o tipo de bug que
+já escapou da suíte "unitária" algumas vezes nessa conversa: um
+`SyntaxError` que impede o módulo de importar, uma assinatura de função que
+mudou sem atualizar quem chama, um `.lower()` chamado em cima da coisa
+errada, um CSV que uma função lê com cabeçalho e outra sem. Esses bugs só
+aparecem quando o caminho de ponta a ponta roda de verdade — mockar demais
+esconde exatamente esse tipo de problema.
+
+Cobre:
+1. Partida avulsa, modo automático
+2. Partida avulsa, modo manual
+3. Torneio criado pelo menu, formato Grupos
+4. Torneio criado pelo menu, formato Mata-mata
+5. Torneio criado pelo menu, formato Double Elimination
+6. Um mês de modo carreira com 2 torneios no mesmo mês (dezembro)
+7. Salvar e recarregar o progresso da carreira no meio do caminho
+"""
+
+import contextlib
+import csv
+import io
+import itertools
+import os
+import random
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import matplotlib
+
+matplotlib.use("Agg")  # evita tentar abrir uma janela gráfica durante os testes
+
+from funcoes_prejogo_deepseek import times, carregar_times_csv
+from funcoes_simulacao_deepseek import jogar_partida
+from funcoes_torneio_deepseek import (
+    criar_torneio,
+    fase_mata_mata,
+    fase_double_elimination,
+)
+from modo_carreira import (
+    jogar_torneio_carreira,
+    salvar_progresso,
+    carregar_progresso,
+)
+from config import TIMES_CSV, JOGADORES_CSV
+
+# Times e jogadores fictícios usados só nesses testes — pequenos o
+# suficiente para rodar rápido, grandes o suficiente para exercitar torneio
+# de 8 times (mínimo do modo carreira) e os 3 formatos do menu.
+TIMES_FIXTURE = [
+    ("alpha", "🅰️", "RED"),
+    ("bravo", "🅱️", "BLUE"),
+    ("charlie", "🇨", "GREEN"),
+    ("delta", "🔺", "YELLOW"),
+    ("echo", "📡", "CYAN"),
+    ("foxtrot", "🦊", "MAGENTA"),
+    ("golf", "⛳", "WHITE"),
+    ("hotel", "🏨", "BLACK"),
+]
+
+ROLES_CICLO = ["Entry", "AWP", "Ponta", "Ponta", "Rifler"]
+
+
+def _escrever_fixtures(diretorio: str) -> None:
+    """Escreve times.csv e jogadores.csv de teste no diretório dado."""
+    caminho_times = os.path.join(diretorio, TIMES_CSV)
+    with open(caminho_times, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        for nome, emoji, cor in TIMES_FIXTURE:
+            writer.writerow([nome, emoji, cor])
+
+    caminho_jogadores = os.path.join(diretorio, JOGADORES_CSV)
+    with open(caminho_jogadores, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["nick", "nacionalidade", "funcao", "over", "time"])
+        for nome, _, _ in TIMES_FIXTURE:
+            for i, funcao in enumerate(ROLES_CICLO):
+                over = 75 + (i * 3) + (hash(nome) % 5)  # alguma variação, sem exagero
+                writer.writerow([f"{nome}_p{i+1}", "BR", funcao, over, nome])
+
+
+def _input_sempre_valido():
+    """Sequência infinita de respostas "1" — sempre uma opção válida em
+    qualquer menu numérico (modo de partida, veto de mapa, etc.), usada
+    quando não sabemos de antemão quantas vezes input() vai ser chamado
+    (depende do resultado aleatório da simulação)."""
+    return itertools.cycle(["1"])
+
+
+class TestLoopPrincipal(unittest.TestCase):
+    def setUp(self):
+        random.seed(42)
+
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self._cwd_original = os.getcwd()
+        os.chdir(self._tmpdir.name)
+        _escrever_fixtures(self._tmpdir.name)
+
+        times.clear()
+        carregar_times_csv(times, TIMES_CSV)
+        self.assertEqual(len(times), 8, "fixture deveria carregar 8 times")
+
+    def tearDown(self):
+        os.chdir(self._cwd_original)
+        self._tmpdir.cleanup()
+        times.clear()
+
+    # ---------------------------------------------------------------
+    # 1-2. Partida avulsa
+    # ---------------------------------------------------------------
+
+    def test_partida_avulsa_modo_auto(self):
+        with patch("builtins.input", side_effect=_input_sempre_valido()):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                resultado = jogar_partida(modo="auto", time1="alpha", time2="bravo")
+
+        self.assertIsNotNone(resultado, buf.getvalue())
+        self.assertIn(resultado.vencedor, ("alpha", "bravo"))
+        self.assertIn(resultado.perdedor, ("alpha", "bravo"))
+        self.assertNotEqual(resultado.vencedor, resultado.perdedor)
+        self.assertGreaterEqual(len(resultado.mapas), 2)
+        for mapa in resultado.mapas:
+            # um mapa de CS2 (MR12, sem OT) nunca passa de 25 rounds
+            self.assertLessEqual(mapa.placar_time1 + mapa.placar_time2, 30)
+
+    def test_partida_avulsa_modo_manual(self):
+        with patch("builtins.input", side_effect=_input_sempre_valido()):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                resultado = jogar_partida(modo="manual", time1="charlie", time2="delta")
+
+        self.assertIsNotNone(resultado, buf.getvalue())
+        self.assertIn(resultado.vencedor, ("charlie", "delta"))
+        self.assertGreaterEqual(len(resultado.mapas), 2)
+
+    # ---------------------------------------------------------------
+    # 3-5. Torneio pelo menu, nos 3 formatos (time_usuario=None, ou seja,
+    # "0 - nenhum" — torneio inteiro automático, sem veto de mapa manual)
+    # ---------------------------------------------------------------
+
+    def test_torneio_formato_grupos(self):
+        respostas = [
+            "Copa Teste Grupos",  # nome do torneio
+            "8",  # número de participantes
+            "1 2 3 4 5 6 7 8",  # seleciona todos os times cadastrados
+            "0",  # nenhum time do usuário -> torneio 100% automático
+            "1",  # formato: grupos
+            "2",  # número de grupos (8 / 2 = 4, divide exato)
+            "2",  # classificados por grupo
+            "2",  # jogos de ida e volta? 2 = não
+        ]
+        with patch("builtins.input", side_effect=respostas):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                criar_torneio(times)
+
+        saida = buf.getvalue()
+        self.assertNotIn("Erro durante execução", saida, saida)
+        self.assertIn("Campeão", saida)
+        self.assertTrue(
+            os.path.exists("Copa Teste Grupos_resultados.csv"),
+            "CSV de resultados do torneio não foi criado",
+        )
+
+    def test_torneio_formato_mata_mata(self):
+        respostas = [
+            "Copa Teste MataMata",
+            "8",
+            "1 2 3 4 5 6 7 8",
+            "0",
+            "2",  # formato: mata-mata (qualquer valor != 1 e != 3)
+        ]
+        with patch("builtins.input", side_effect=respostas):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                criar_torneio(times)
+
+        saida = buf.getvalue()
+        self.assertNotIn("Erro durante execução", saida, saida)
+        self.assertIn("Campeão", saida)
+        self.assertTrue(os.path.exists("Copa Teste MataMata_resultados.csv"))
+
+    def test_torneio_formato_double_elimination(self):
+        respostas = [
+            "Copa Teste DoubleElim",
+            "8",
+            "1 2 3 4 5 6 7 8",
+            "0",
+            "3",  # formato: double elimination
+        ]
+        with patch("builtins.input", side_effect=respostas):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                criar_torneio(times)
+
+        saida = buf.getvalue()
+        self.assertNotIn("Erro durante execução", saida, saida)
+        self.assertIn("Campeão", saida)
+        self.assertTrue(os.path.exists("Copa Teste DoubleElim_resultados.csv"))
+
+    # ---------------------------------------------------------------
+    # 6. Modo carreira: mês com 2 torneios (dezembro)
+    # ---------------------------------------------------------------
+
+    def test_carreira_mes_dezembro_dois_torneios(self):
+        dados = {
+            "time_usuario": "alpha",
+            "ano_atual": 2026,
+            "mes_atual": 12,  # dezembro: IEM New Orleans + Faceit Madrid Major
+            "historico": [],
+            "orcamento": 200000,
+            "vitorias": 0,
+            "derrotas": 0,
+            "estatisticas": {},
+        }
+
+        with patch("builtins.input", side_effect=_input_sempre_valido()):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                jogar_torneio_carreira(dados)
+
+        saida = buf.getvalue()
+        self.assertIn("IEM New Orleans", saida, saida)
+        self.assertIn("Faceit Madrid Major", saida, saida)
+
+        # Os dois torneios do mês devem ter jogado e registrado histórico
+        self.assertEqual(len(dados["historico"]), 2)
+        torneios_jogados = {h["torneio"] for h in dados["historico"]}
+        self.assertEqual(torneios_jogados, {"IEM New Orleans", "Faceit Madrid Major"})
+        self.assertEqual(len(dados["estatisticas"]), 2)
+
+        # Toda posição registrada tem que ser um valor plausível (1 a 8,
+        # já que o torneio tem 8 times) — pega regressão pro sorteio cego
+        # de posição que já vazou aqui uma vez.
+        for h in dados["historico"]:
+            self.assertGreaterEqual(h["posicao"], 1)
+            self.assertLessEqual(h["posicao"], 8)
+
+        # vitórias + derrotas registradas tem que bater com o histórico
+        self.assertEqual(dados["vitorias"] + dados["derrotas"], 2)
+
+        # se foi campeão de algum, o orçamento deve refletir o prêmio
+        campeonatos = dados["vitorias"]
+        self.assertEqual(dados["orcamento"], 200000 + campeonatos * 50000)
+
+    # ---------------------------------------------------------------
+    # 7. Salvar e recarregar o progresso no meio da carreira
+    # ---------------------------------------------------------------
+
+    def test_carreira_salvar_e_recarregar_progresso(self):
+        dados = {
+            "time_usuario": "golf",
+            "ano_atual": 2026,
+            "mes_atual": 1,  # só 1 torneio nesse mês -> teste mais rápido
+            "historico": [],
+            "orcamento": 200000,
+            "vitorias": 0,
+            "derrotas": 0,
+            "estatisticas": {},
+        }
+
+        with patch("builtins.input", side_effect=_input_sempre_valido()):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                jogar_torneio_carreira(dados)
+
+        self.assertEqual(len(dados["historico"]), 1)
+
+        caminho_save = os.path.join(self._tmpdir.name, "save_teste.json")
+        salvar_progresso(dados, arquivo=caminho_save)
+        self.assertTrue(os.path.exists(caminho_save))
+
+        dados_recarregados = carregar_progresso(arquivo=caminho_save)
+
+        self.assertEqual(dados_recarregados["time_usuario"], "golf")
+        self.assertEqual(len(dados_recarregados["historico"]), 1)
+        self.assertEqual(dados_recarregados["historico"], dados["historico"])
+        self.assertEqual(dados_recarregados["orcamento"], dados["orcamento"])
+        self.assertEqual(
+            dados_recarregados["estatisticas"].keys(), dados["estatisticas"].keys()
+        )
+
+        # não pode ter sobrado arquivo temporário de escrita atômica
+        self.assertFalse(os.path.exists(caminho_save + ".tmp"))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

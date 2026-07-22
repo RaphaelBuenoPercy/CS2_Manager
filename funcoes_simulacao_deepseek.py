@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import logging
 import random
@@ -15,7 +17,7 @@ from gerador_kills_deaths import (
     obter_jogadores,
 )
 from pathlib import Path
-from __future__ import annotations
+from config import TIMES_CSV, JOGADORES_CSV
 
 logger = logging.getLogger(__name__)
 
@@ -399,13 +401,13 @@ def jogar_partida(
     """Gerencia uma partida completa entre dois times"""
     try:
 
-        if not Path("times.csv").exists():
-            raise FileNotFoundError("times.csv não encontrado.")
+        if not Path(TIMES_CSV).exists():
+            raise FileNotFoundError(f"{TIMES_CSV} não encontrado.")
 
-        if not Path("jogadores.csv").exists():
-            raise FileNotFoundError("jogadores.csv não encontrado.")
+        if not Path(JOGADORES_CSV).exists():
+            raise FileNotFoundError(f"{JOGADORES_CSV} não encontrado.")
 
-        times_config = carregar_times_config("times.csv")
+        times_config = carregar_times_config(TIMES_CSV)
 
         # Validação inicial
         try:
@@ -415,7 +417,7 @@ def jogar_partida(
                 if time2
                 else random.choice([t for t in times if t != time1])
             )
-            jogadores_Dataframe = carregar_jogadores_de_arquivo("jogadores.csv")
+            jogadores_Dataframe = carregar_jogadores_de_arquivo(JOGADORES_CSV)
             jogadores_time1 = obter_jogadores(time1, jogadores_Dataframe)
             jogadores_time2 = obter_jogadores(time2, jogadores_Dataframe)
 
@@ -441,14 +443,7 @@ def jogar_partida(
         except Exception as e:
             logger.exception("Erro na seleção de mapas entre %s e %s", time1, time2)
             print(f"Erro na seleção de mapas: {str(e)}")
-            return ResultadoPartida(
-                partida_id=ContadorPartidas.proxima_partida(),
-                mapas=[],
-                vencedor="",
-                perdedor="",
-                modo_jogo=modo,
-                fase=fase_torneio,
-            )
+            return None
 
         # Execução dos mapas
         for mapa in mapas:
@@ -486,14 +481,7 @@ def jogar_partida(
             except Exception as e:
                 logger.exception("Erro crítico durante o mapa %s", mapa)
                 print(f"Erro crítico durante o mapa {mapa}: {str(e)}")
-                return ResultadoPartida(
-                    partida_id=ContadorPartidas.proxima_partida(),
-                    mapas=[],
-                    vencedor="",
-                    perdedor="",
-                    modo_jogo=modo,
-                    fase=fase_torneio,
-                )
+                return None
 
         resultado.vencedor, resultado.perdedor = (
             (time1, time2) if vitorias_time1 > vitorias_time2 else (time2, time1)
@@ -524,14 +512,7 @@ def jogar_partida(
     except Exception as e:
         logger.exception("Erro fatal na partida entre %s e %s", time1, time2)
         print(f"Erro fatal na partida: {str(e)}")
-        return ResultadoPartida(
-            partida_id=ContadorPartidas.proxima_partida(),
-            mapas=[],
-            vencedor="",
-            perdedor="",
-            modo_jogo=modo,
-            fase=fase_torneio,
-        )
+        return None
 
 
 # ==================== EXEMPLO DE USO ====================
@@ -614,7 +595,7 @@ def decidir_vencedor_round(
 
 
 # dicionário de times carregados do CSV
-def carregar_times_config(caminho_csv="times.csv"):
+def carregar_times_config(caminho_csv=TIMES_CSV):
     """Lê o times.csv (sem cabeçalho, colunas fixas: nome,emoji,cor) e monta
     a configuração visual de cada time. Usa csv.reader (não DictReader) de
     propósito: o arquivo não tem linha de cabeçalho, então usar DictReader
@@ -742,7 +723,7 @@ def simular_partidas_em_lote_auto(
         )
 
         # Carrega jogadores
-        df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+        df_jogadores = carregar_jogadores_de_arquivo(JOGADORES_CSV)
         jogadores_time1 = obter_jogadores(time1, df_jogadores)
         jogadores_time2 = obter_jogadores(time2, df_jogadores)
 
@@ -823,7 +804,7 @@ def simular_partida_auto(time1: str, time2: str, fase, modo: ModoJogo = "auto"):
     )
 
     # Carrega jogadores
-    df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+    df_jogadores = carregar_jogadores_de_arquivo(JOGADORES_CSV)
 
     jogadores_time1 = [
         {

@@ -4,8 +4,17 @@ import logging
 from typing import List, Dict, Optional
 from collections import defaultdict
 from estrategias_deepseek import estrategias_por_mapa
+from config import TIMES_CSV, JOGADORES_CSV
 
 logger = logging.getLogger(__name__)
+
+# Lista compartilhada dos times cadastrados na sessão atual. As funções
+# abaixo não dependem mais dela internamente (recebem `lista_times` como
+# parâmetro explícito, o que as deixa testáveis com qualquer lista) — mas
+# Menu_Helper.py, modo_carreira.py e funcoes_simulacao_deepseek.py ainda
+# importam este `times` como a lista canônica da aplicação e a repassam
+# adiante para essas funções.
+times: List[str] = []
 
 
 def adicionar_time(nome: str, lista_times: List[str]) -> None:
@@ -28,7 +37,7 @@ def adicionar_time(nome: str, lista_times: List[str]) -> None:
     print(f"✓ Time '{nome}' adicionado com sucesso\n")
 
 
-def carregar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> None:
+def carregar_times_csv(lista_times: List[str], arquivo: str = TIMES_CSV) -> None:
     """Carrega times de um arquivo CSV validando o formato.
 
     Args:
@@ -58,7 +67,7 @@ def carregar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> No
         print(f"Erro ao ler CSV: {str(e)}\n")
 
 
-def salvar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> None:
+def salvar_times_csv(lista_times: List[str], arquivo: str = TIMES_CSV) -> None:
     """Persiste a lista atual de `times` de volta no CSV.
 
     Antes, adicionar/remover times pelo menu só alterava a lista em memória:
@@ -90,7 +99,7 @@ def salvar_times_csv(lista_times: List[str], arquivo: str = "times.csv") -> None
         print(f"⚠️ Não foi possível salvar as alterações em '{arquivo}': {e}")
 
 
-def calcular_over_medio(time_nome: str, arquivo_csv: str = "jogadores.csv") -> float:
+def calcular_over_medio(time_nome: str, arquivo_csv: str = JOGADORES_CSV) -> float:
     """
     Calcula o over médio de um time com base no arquivo CSV de jogadores.
 
@@ -223,7 +232,7 @@ def vetar_e_escolher_mapas(time1: str, time2: str) -> List[str]:
         return []
 
 
-def calcular_overs_medios_times(arquivo_csv: str = "jogadores.csv") -> dict:
+def calcular_overs_medios_times(arquivo_csv: str = JOGADORES_CSV) -> dict:
     """
     Calcula o over médio de todos os times com base no arquivo CSV de jogadores.
 

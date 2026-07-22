@@ -30,6 +30,7 @@ from funcoes_simulacao_deepseek import (
 # gerador_kills_deaths.py — todas fazendo exatamente a mesma coisa).
 from gerador_kills_deaths import carregar_jogadores_de_arquivo
 from modo_carreira import menu_carreira
+from config import JOGADORES_CSV
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ def menu_gerenciar_times():
                     if 0 <= idx < len(times):
                         if confirmar_acao("Tem certeza que deseja remover este time?"):
                             removed = times.pop(idx)
-                            salvar_times_csv()
+                            salvar_times_csv(times)
                             print(f"Time {removed} removido!")
                             print(
                                 "Obs.: os jogadores desse time em 'jogadores.csv' "
@@ -272,8 +273,8 @@ def main():
 
     if confirmar_acao("Deseja carregar o arquivo times.csv ao iniciar?"):
         try:
-            carregar_times_csv()  # Carrega o arquivo padrão
-            df_jogadores = carregar_jogadores_de_arquivo("jogadores.csv")
+            carregar_times_csv(times)  # Carrega o arquivo padrão
+            df_jogadores = carregar_jogadores_de_arquivo(JOGADORES_CSV)
             if df_jogadores is None:
                 print(
                     "⚠️ 'jogadores.csv' não encontrado — os times foram carregados, mas sem elenco.\n"
@@ -300,7 +301,7 @@ def main():
             menu_torneio()
         elif escolha == 4:
             arquivo = input("Caminho do arquivo para carregar: ").strip()
-            carregar_times_csv(arquivo)
+            carregar_times_csv(times, arquivo)
         elif escolha == 5:
             menu_carreira()
         elif escolha == 6:

@@ -18,37 +18,38 @@ class TestPreJogo(unittest.TestCase):
 
     # Testes para adicionar_time()
     def test_adicionar_time_valido(self):
-        adicionar_time("FURIA")
-        self.assertIn("FURIA", times)
+        adicionar_time("FURIA", times)
+        self.assertIn("furia", times)  # nomes são normalizados para minúsculo
         self.assertEqual(len(times), 1)
 
     def test_adicionar_time_duplicado(self):
-        adicionar_time("MIBR")
-        with self.assertRaisesRegex(ValueError, "Time 'MIBR' já está registrado"):
-            adicionar_time("MIBR")
+        adicionar_time("MIBR", times)
+        with self.assertRaisesRegex(ValueError, "Time 'mibr' já está registrado"):
+            adicionar_time("MIBR", times)
 
     def test_adicionar_time_vazio(self):
         with self.assertRaisesRegex(ValueError, "Nome do time não pode ser vazio"):
-            adicionar_time("")
+            adicionar_time("", times)
 
     # Testes para carregar_times_csv()
     @patch("builtins.open", new_callable=mock_open, read_data="FURIA\nMIBR\nLiquid")
     def test_carregar_csv_valido(self, mock_file):
-        carregar_times_csv("dummy.csv")
-        self.assertListEqual(times, ["FURIA", "MIBR", "Liquid"])
+        carregar_times_csv(times, "dummy.csv")
+        # nomes carregados do CSV também são normalizados para minúsculo
+        self.assertListEqual(times, ["furia", "mibr", "liquid"])
 
     def test_carregar_csv_inexistente(self):
         with self.assertRaises(FileNotFoundError):
-            carregar_times_csv("arquivo_inexistente.csv")
+            carregar_times_csv(times, "arquivo_inexistente.csv")
 
-    # Testes para listar_times(times)
+    # Testes para listar_times()
     def test_listar_times_vazio(self):
         with patch("builtins.print") as mocked_print:
             listar_times(times)
             mocked_print.assert_called_with("Nenhum time registrado\n")
 
     def test_listar_times_preenchido(self):
-        # Adiciona times à lista global
+        # Adiciona times à lista
         times.extend(["Furia", "Mibr"])
 
         # Mock de print para verificar a saída

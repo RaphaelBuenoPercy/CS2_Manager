@@ -102,6 +102,34 @@ def escolher_time_carreira():
 # ===============================================================
 
 
+def calcular_posicao_final(resultados, vencedor, time_usuario, qtd_times_torneio=8):
+    """Calcula a posição final do time do usuário a partir do bracket real
+    (em vez de sortear aleatoriamente). Percorre os resultados das partidas
+    e encontra a fase em que o time do usuário foi eliminado — times
+    eliminados na mesma fase empatam nominalmente na mesma faixa de
+    posições, como em torneios reais.
+    """
+    if vencedor == time_usuario:
+        return 1
+
+    faixas_por_fase = {
+        "Final": [2],
+        "Semifinal": [3, 4],
+        "Quartas": [5, 6, 7, 8],
+        "Oitavas": [9, 10, 11, 12, 13, 14, 15, 16],
+    }
+
+    for partida in resultados:
+        if getattr(partida, "perdedor", None) == time_usuario:
+            faixa = faixas_por_fase.get(getattr(partida, "fase", None), [2])
+            return random.choice(faixa)
+
+    # Não deveria acontecer (o time do usuário sempre joga ou vence ou
+    # perde alguma partida), mas evita quebrar o fluxo em caso de dado
+    # inesperado.
+    return random.randint(2, qtd_times_torneio)
+
+
 def jogar_torneio_carreira(dados):
     """Executa o torneio do mês (se houver) no modo carreira."""
     mes = dados["mes_atual"]
@@ -158,10 +186,8 @@ def jogar_torneio_carreira(dados):
         if isinstance(vencedor, list):
             vencedor = vencedor[0]
 
-        posicao = (
-            1
-            if vencedor == dados["time_usuario"]
-            else random.randint(2, qtd_times_torneio)
+        posicao = calcular_posicao_final(
+            resultados, vencedor, dados["time_usuario"], qtd_times_torneio
         )
         if posicao == 1:
             dados["orcamento"] += 50000

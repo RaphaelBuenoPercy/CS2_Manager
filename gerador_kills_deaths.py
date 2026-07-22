@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import random
 from typing import List, Dict, Any, Tuple
+from config import JOGADORES_CSV
 
 # ==============================================================================
 # 1. CARREGAMENTO E PREPARAÇÃO DOS DADOS (MODIFICADO)
@@ -62,7 +63,7 @@ def obter_jogadores(nome_time: str, df: pd.DataFrame) -> List[Dict[str, Any]]:
     causando KeyError em salvar_estatisticas_torneio). Todo o resto do
     código deve importar esta função em vez de redefini-la.
     """
-    time_df = df[df["time"] == nome_time].lower()
+    time_df = df[df["time"] == nome_time.lower()]
     if len(time_df) == 0:
         raise ValueError(f"Time '{nome_time.lower()}' não encontrado no CSV.")
 
@@ -214,7 +215,7 @@ def registrar_death(jogador, mapa):
 
 if __name__ == "__main__":
     # Define o nome do arquivo CSV que será lido
-    arquivo_csv_jogadores = "jogadores.csv"
+    arquivo_csv_jogadores = JOGADORES_CSV
 
     # 1. Carrega todos os jogadores do arquivo CSV
     df_jogadores = carregar_jogadores_de_arquivo(arquivo_csv_jogadores)
